@@ -1,0 +1,45 @@
+# AI Wiki Platform - Product Requirements Document
+
+## 1. Creator Onboarding & Wiki Setup
+### 1.1 Landing Page
+- Hero section with interactive "AI Demo" (simulate extraction).
+- Value propositions: "Turn documents into discovery," "Knowledge that connects itself."
+- Clear CTA: "Get Started for Free."
+
+### 1.2 Creator Dashboard
+- List view of "My Wikis" with status (Published/Draft) and last updated.
+- Metrics: Total Pages, Concepts Extracted, Source Count.
+- Large "Create New Wiki" button triggering a multi-step modal.
+
+### 1.3 Upload & Processing
+- Drag-and-drop file uploader (PDF, TXT, DOCX).
+- URL input field for web scraping.
+- Live progress feed: "Extracting entities...", "Connecting concepts...", "Generating summaries..."
+
+## 2. Reader Portal & Knowledge Exploration
+### 2.1 Wiki Homepage
+- Global search bar (AI-powered).
+- Wiki summary and key stats (e.g., "Contains 450 interconnected concepts").
+- "Featured Concepts" grid.
+- Mini network graph preview widget.
+
+### 2.2 Wiki Article Page
+- Main content area with high readability.
+- "Related Concepts" sidebar (links to other articles).
+- "Citations & Sources" footer section showing snippets from original docs.
+
+### 2.3 Visual Network Graph
+- Full-screen interactive canvas.
+- Nodes represent concepts, edges represent relationships.
+- Filter controls: "Node Size by Popularity," "Category Filter."
+
+## 3. Wiki Management & Billing
+### 3.1 Sources Manager
+- Table view of all uploaded files/URLs.
+- Per-source stats: "Concepts found," "Pages generated."
+- Actions: Re-scan source, delete source, add new.
+
+### 3.2 Wiki Settings
+- Form fields: Title, Slug (URL), Description.
+- Visibility toggles: Public, Private, Password Protected.
+- Danger zone: Delete Wiki.

@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Enceladus Subsurface Ocean | Knowledge OS</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Charter:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+    :root {
+        --accent: #a78bfa;
+        --bg-page: #ffffff;
+        --bg-sidebar: #fbfbfb;
+        --border-subtle: #eeeeee;
+        --text-main: #171717;
+        --text-muted: #737373;
+        --chip-bg: #f5f5f5;
+    }
+    body {
+        background-color: var(--bg-page);
+        color: var(--text-main);
+        font-family: 'Inter', sans-serif;
+    }
+    .article-container {
+        max-width: 75ch;
+        margin: 0 auto;
+    }
+    .article-content {
+        line-height: 1.8;
+        font-size: 1.125rem;
+    }
+    .knowledge-chip {
+        display: inline-flex;
+        align-items: center;
+        padding: 0 8px;
+        border-radius: 6px;
+        background: var(--chip-bg);
+        color: var(--accent);
+        font-weight: 500;
+        font-size: 0.95em;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+    }
+    .knowledge-chip:hover {
+        background: white;
+        border-color: var(--accent);
+        box-shadow: 0 4px 12px rgba(167, 139, 250, 0.15);
+    }
+    .sidebar-link-active {
+        background: rgba(167, 139, 250, 0.08);
+        color: var(--accent);
+        border-right: 2px solid var(--accent);
+    }
+    .sidebar-item {
+        transition: all 0.2s ease;
+    }
+    .sidebar-item:hover:not(.sidebar-link-active) {
+        background: rgba(0, 0, 0, 0.03);
+    }
+    .diamond-list li::before {
+        content: '◆';
+        color: var(--accent);
+        margin-right: 0.75rem;
+        font-size: 0.75rem;
+    }
+    /* Hide scrollbar for clean OS look */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
+<script id="tailwind-config">
+    tailwind.config = {
+        darkMode: "class",
+        theme: {
+            extend: {
+                colors: {
+                    primary: "#a78bfa",
+                    background: "#ffffff",
+                    surface: "#fbfbfb",
+                    outline: "#eeeeee",
+                    "on-surface": "#171717",
+                    "on-surface-variant": "#737373"
+                },
+                fontFamily: {
+                    headline: ["Inter", "sans-serif"],
+                    body: ["Inter", "sans-serif"],
+                    serif: ["Charter", "serif"]
+                }
+            }
+        }
+    }
+</script>
+</head>
+<body class="overflow-x-hidden min-h-screen flex">
+<!-- Left Navigation Sidebar -->
+<aside class="w-64 fixed inset-y-0 left-0 bg-surface border-r border-outline flex flex-col z-50">
+<div class="p-6">
+<div class="flex items-center gap-3 mb-8">
+<div class="h-7 w-7 flex items-center justify-center bg-primary rounded-md text-white">
+<span class="material-symbols-outlined text-[18px]">hub</span>
+</div>
+<span class="font-headline font-bold text-sm tracking-tight">InstantWiki</span>
+</div>
+<div class="mb-8">
+<h2 class="px-3 text-[10px] font-bold text-on-surface-variant/50 uppercase tracking-widest mb-4">Space Exploration</h2>
+<nav class="space-y-0.5">
+<a class="sidebar-item sidebar-link-active flex items-center gap-3 px-3 py-2 text-sm rounded-md font-medium" href="#">
+<span class="material-symbols-outlined text-[18px]">description</span>
+                    Overview
+                </a>
+<a class="sidebar-item flex items-center gap-3 px-3 py-2 text-sm text-on-surface-variant hover:text-on-surface rounded-md" href="#">
+<span class="material-symbols-outlined text-[18px]">article</span>
+                    Pages
+                </a>
+<a class="sidebar-item flex items-center gap-3 px-3 py-2 text-sm text-on-surface-variant hover:text-on-surface rounded-md" href="#">
+<span class="material-symbols-outlined text-[18px]">account_tree</span>
+                    Knowledge Graph
+                </a>
+<a class="sidebar-item flex items-center gap-3 px-3 py-2 text-sm text-on-surface-variant hover:text-on-surface rounded-md" href="#">
+<span class="material-symbols-outlined text-[18px]">folder</span>
+                    Sources
+                </a>
+</nav>
+</div>
+<div>
+<h2 class="px-3 text-[10px] font-bold text-on-surface-variant/50 uppercase tracking-widest mb-4">Settings</h2>
+<nav class="space-y-0.5">
+<a class="sidebar-item flex items-center gap-3 px-3 py-2 text-sm text-on-surface-variant hover:text-on-surface rounded-md" href="#">
+<span class="material-symbols-outlined text-[18px]">history</span>
+                    Recent
+                </a>
+<a class="sidebar-item flex items-center gap-3 px-3 py-2 text-sm text-on-surface-variant hover:text-on-surface rounded-md" href="#">
+<span class="material-symbols-outlined text-[18px]">star</span>
+                    Favorites
+                </a>
+</nav>
+</div>
+</div>
+<div class="mt-auto p-4 border-t border-outline">
+<button class="w-full flex items-center gap-3 px-3 py-2 text-sm text-on-surface-variant hover:bg-black/5 rounded-md transition-colors">
+<span class="material-symbols-outlined text-[18px]">search</span>
+            Search (⌘K)
+        </button>
+</div>
+</aside>
+<!-- Main Workspace -->
+<main class="flex-1 ml-64 min-h-screen">
+<!-- Top Nav / Knowledge Trail -->
+<header class="h-14 border-b border-outline px-12 flex items-center justify-between sticky top-0 bg-white/80 backdrop-blur-md z-40">
+<div class="flex items-center gap-2 text-[12px] text-on-surface-variant font-medium">
+<a class="hover:text-primary transition-colors" href="#">Planetary Science</a>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<a class="hover:text-primary transition-colors" href="#">Saturn System</a>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-on-surface">Enceladus Subsurface Ocean</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="flex items-center gap-2 px-3 py-1.5 bg-primary/10 text-primary text-[12px] font-bold rounded-md hover:bg-primary/20 transition-all">
+<span class="material-symbols-outlined text-[16px]">share</span>
+                Share
+            </button>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-on-surface text-[20px]">more_horiz</button>
+</div>
+</header>
+<div class="px-12 py-16">
+<div class="article-container">
+<!-- Article Header -->
+<header class="mb-12">
+<h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-6">Enceladus Subsurface Ocean</h1>
+<div class="flex items-center gap-4 text-sm text-on-surface-variant">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]">schedule</span>
+                        Last indexed 2 days ago
+                    </div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+                        AI Verified Content
+                    </div>
+</div>
+</header>
+<!-- Knowledge Insights Bar -->
+<section class="grid grid-cols-3 gap-4 mb-16 p-6 bg-surface rounded-xl border border-outline shadow-sm">
+<div class="text-center md:text-left">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest block mb-1">Knowledge Density</span>
+<span class="text-lg font-bold text-on-surface">Advanced</span>
+</div>
+<div class="text-center md:text-left border-x border-outline px-4">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest block mb-1">Associations</span>
+<span class="text-lg font-bold text-on-surface">14 Linked Pages</span>
+</div>
+<div class="text-center md:text-left pl-4">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest block mb-1">Primary Relation</span>
+<span class="text-lg font-bold text-primary">Astrobiology</span>
+</div>
+</section>
+<!-- Article Body -->
+<article class="article-content text-on-surface mb-20">
+<p class="mb-8">
+                    A global reservoir of liquid water located beneath the icy crust of Saturn's sixth-largest moon, 
+                    <a class="knowledge-chip" href="#">Enceladus</a> 
+                    is considered one of the most promising environments for extraterrestrial life. Data from the 
+                    <a class="knowledge-chip" href="#">Cassini-Huygens</a> 
+                    mission has confirmed that complex organic molecules are present in the plumes of water vapor and ice grains erupting from the moon.
+                </p>
+<h2 class="text-2xl font-bold mt-12 mb-6">Overview of Composition</h2>
+<p class="mb-8">
+                    The presence of ice grains, rich in sodium and potassium, suggests that the ocean is in direct contact with a rocky core, facilitating rich chemical interactions. Researchers postulate that the tidal heating generated by Saturn's gravitational pull maintains the ocean's temperature.
+                </p>
+<h2 class="text-2xl font-bold mt-12 mb-6">The Tiger Stripes &amp; Plumes</h2>
+<p class="mb-8">
+                    The southern polar region of Enceladus features four prominent linear depressions known as "Tiger Stripes." These fractures serve as the exit points for cryogenic geysers that eject ocean material into space, forming the 
+                    <a class="knowledge-chip" href="#">E-ring of Saturn</a>. 
+                    Recent analysis indicates that these plumes contain molecular hydrogen (H2), a strong indicator of hydrothermal activity.
+                </p>
+<div class="my-12 p-8 border-l-2 border-primary bg-primary/5 rounded-r-lg">
+<div class="flex items-center gap-2 mb-3 text-primary font-bold text-xs uppercase tracking-widest">
+<span class="material-symbols-outlined text-[18px]">auto_awesome</span>
+                        Synthesis Hypothesis
+                    </div>
+<p class="italic text-lg text-on-surface font-serif leading-relaxed">
+                        "This suggests that the environment may have been stable for billions of years, providing a significant window for the emergence of biology."
+                    </p>
+</div>
+<h2 class="text-2xl font-bold mt-12 mb-6">Chemical Potential for Life</h2>
+<ul class="space-y-4 mb-12 diamond-list">
+<li>Presence of CH4 (Methane) in plume concentrations exceeding geochemical models.</li>
+<li>Dissolved carbonates indicating a pH level between 11 and 12 (alkaline).</li>
+<li>High concentrations of Silica (SiO2) particles suggesting active hydrothermal vents.</li>
+</ul>
+</article>
+<!-- Knowledge Dock (Bottom Section) -->
+<section class="border-t border-outline pt-16 space-y-16">
+<!-- Connections Map Section -->
+<div>
+<div class="flex items-center justify-between mb-8">
+<h3 class="text-xs font-bold uppercase tracking-[0.2em] text-on-surface-variant">Knowledge Connections</h3>
+<button class="flex items-center gap-2 px-4 py-2 bg-on-surface text-white text-[12px] font-bold rounded-full hover:bg-on-surface/90 transition-all shadow-sm">
+<span class="material-symbols-outlined text-[16px]">hub</span>
+                            View Connection Graph
+                        </button>
+</div>
+<div class="flex flex-wrap gap-4 items-center">
+<div class="flex flex-col items-center">
+<span class="text-[10px] text-on-surface-variant/60 uppercase font-bold mb-1">Upstream</span>
+<div class="px-4 py-2 border border-outline rounded-lg text-sm bg-surface">Saturn System</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant/40">arrow_forward</span>
+<div class="flex flex-col items-center">
+<span class="text-[10px] text-primary uppercase font-bold mb-1">Current Node</span>
+<div class="px-4 py-2 border-2 border-primary rounded-lg text-sm bg-white font-bold">Enceladus Ocean</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant/40">arrow_forward</span>
+<div class="flex flex-wrap gap-2 pt-5">
+<div class="px-4 py-2 border border-outline rounded-lg text-sm bg-surface">Astrobiology</div>
+<div class="px-4 py-2 border border-outline rounded-lg text-sm bg-surface">Hydrothermal Systems</div>
+</div>
+</div>
+</div>
+<!-- Backlinks Section -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+<div>
+<h3 class="text-xs font-bold uppercase tracking-[0.2em] text-on-surface-variant mb-6">Referenced In</h3>
+<ul class="space-y-3">
+<li><a class="text-sm font-medium hover:text-primary flex items-center justify-between group" href="#">
+                                Machine Learning Atlas <span class="material-symbols-outlined text-[16px] opacity-0 group-hover:opacity-100 transition-opacity">north_east</span>
+</a></li>
+<li><a class="text-sm font-medium hover:text-primary flex items-center justify-between group" href="#">
+                                Deep Learning Applications <span class="material-symbols-outlined text-[16px] opacity-0 group-hover:opacity-100 transition-opacity">north_east</span>
+</a></li>
+<li><a class="text-sm font-medium hover:text-primary flex items-center justify-between group" href="#">
+                                Data Classification <span class="material-symbols-outlined text-[16px] opacity-0 group-hover:opacity-100 transition-opacity">north_east</span>
+</a></li>
+</ul>
+</div>
+<div>
+<h3 class="text-xs font-bold uppercase tracking-[0.2em] text-on-surface-variant mb-6">Source Documents</h3>
+<ul class="space-y-4">
+<li class="flex items-center justify-between p-3 bg-surface rounded-lg border border-outline">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[18px] text-red-400">picture_as_pdf</span>
+<span class="text-sm font-medium">MachineLearning.pdf</span>
+</div>
+<span class="flex items-center gap-1 text-[10px] text-green-600 font-bold bg-green-50 px-2 py-0.5 rounded-full border border-green-100">
+<span class="material-symbols-outlined text-[12px]">check_circle</span> INDEXED
+                                </span>
+</li>
+<li class="flex items-center justify-between p-3 bg-surface rounded-lg border border-outline">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[18px] text-blue-400">description</span>
+<span class="text-sm font-medium">Saturn_System_Atlas.pdf</span>
+</div>
+<span class="flex items-center gap-1 text-[10px] text-green-600 font-bold bg-green-50 px-2 py-0.5 rounded-full border border-green-100">
+<span class="material-symbols-outlined text-[12px]">check_circle</span> INDEXED
+                                </span>
+</li>
+</ul>
+</div>
+</div>
+</section>
+</div>
+</div>
+</main>
+<!-- Floating Graph Drawer Toggle (Fixed to right) -->
+<div class="fixed right-6 bottom-6 flex flex-col gap-3">
+<button class="h-12 w-12 rounded-full bg-on-surface text-white flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-50">
+<span class="material-symbols-outlined">bubble_chart</span>
+</button>
+</div>
+<!-- Interactive UI Hover Script -->
+<script>
+    // Tooltip simulation for chips
+    document.querySelectorAll('.knowledge-chip').forEach(chip => {
+        chip.addEventListener('mouseenter', (e) => {
+            const tooltip = document.createElement('div');
+            tooltip.className = 'fixed z-[100] p-4 rounded-xl bg-white shadow-2xl max-w-xs text-[13px] text-on-surface pointer-events-none border border-outline animate-in fade-in zoom-in-95 duration-200';
+            tooltip.innerHTML = `
+                <div class="flex items-center gap-2 mb-3 text-primary font-bold uppercase tracking-widest text-[10px]">
+                    <span class="material-symbols-outlined text-[14px]">auto_awesome</span>
+                    <span>Entity Preview</span>
+                </div>
+                <div class="font-bold mb-1">${chip.textContent}</div>
+                <p class="text-on-surface-variant leading-relaxed mb-3">Key knowledge entity with 42 total connections across your database.</p>
+                <div class="text-[10px] font-bold text-on-surface-variant/40">SHIFT + CLICK TO EXPAND GRAPH</div>
+            `;
+            tooltip.id = 'active-tooltip';
+            document.body.appendChild(tooltip);
+            const rect = chip.getBoundingClientRect();
+            tooltip.style.left = `${rect.left}px`;
+            tooltip.style.top = `${rect.bottom + 12}px`;
+        });
+        chip.addEventListener('mouseleave', () => {
+            const tooltip = document.getElementById('active-tooltip');
+            if (tooltip) tooltip.remove();
+        });
+    });
+</script>
+</body></html>

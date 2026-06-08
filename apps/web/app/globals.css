@@ -1,0 +1,97 @@
+@import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Geist:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 30 14% 97%; /* #f9f9f7 */
+    --foreground: 220 8% 10%; /* #1a1c1b */
+    
+    --card: 0 0% 100%;
+    --card-foreground: 220 8% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 8% 10%;
+
+    --primary: 259 70% 53%; /* #6b38d4 */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 172 100% 21%; /* #006b5e */
+    --secondary-foreground: 0 0% 100%;
+    
+    --tertiary: 39 100% 26%; /* #855000 */
+    --on-tertiary: 0 0% 100%;
+
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 46%;
+
+    --accent: 259 70% 53%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 259 70% 53%;
+
+    --radius: 0.5rem;
+
+    /* Luminous Precision Palette */
+    --surface: 30 14% 97%; /* #f9f9f7 */
+    --surface-dim: 60 4% 85%; /* #dadad8 */
+    --surface-bright: 30 14% 97%; /* #f9f9f7 */
+    --surface-container-lowest: 0 0% 100%; /* #ffffff */
+    --surface-container-low: 60 7% 95%; /* #f4f4f2 */
+    --surface-container: 60 5% 93%; /* #eeeeec */
+    --surface-container-high: 30 4% 90%; /* #e8e8e6 */
+    --surface-container-highest: 240 4% 89%; /* #e2e3e1 */
+    --on-surface: 220 8% 10%; /* #1a1c1b */
+    --on-surface-variant: 250 12% 29%; /* #494454 */
+    --inverse-surface: 210 5% 19%; /* #2f3130 */
+    --inverse-on-surface: 240 5% 95%; /* #f1f1ef */
+    --outline: 260 9% 49%; /* #7b7486 */
+    --outline-variant: 257 15% 78%; /* #cbc3d7 */
+    --surface-tint: 259 71% 54%; /* #6d3bd7 */
+    --on-primary: 0 0% 100%;
+    --primary-container: 260 85% 64%; /* #8455ef */
+    --on-primary-container: 0 0% 100%;
+    --inverse-primary: 260 100% 87%; /* #d0bcff */
+    --on-secondary: 0 0% 100%;
+    --secondary-container: 172 80% 67%; /* #6ef9e2 */
+    --on-secondary-container: 173 100% 22%; /* #007164 */
+    --tertiary-container: 33 100% 33%; /* #a76500 */
+    --on-tertiary-container: 0 0% 100%;
+    --error: 0 72% 51%; /* #ba1a1a */
+    --on-error: 0 0% 100%;
+    --error-container: 0 100% 93%; /* #ffdad6 */
+    --on-error-container: 0 100% 28%; /* #93000a */
+    --primary-fixed: 261 100% 93%; /* #e9ddff */
+    --primary-fixed-dim: 260 100% 87%; /* #d0bcff */
+    --on-primary-fixed: 261 100% 18%; /* #23005c */
+    --on-primary-fixed-variant: 261 79% 41%; /* #5516be */
+    --secondary-fixed: 172 80% 67%; /* #6ef9e2 */
+    --secondary-fixed-dim: 171 63% 54%; /* #4ddcc6 */
+    --on-secondary-fixed: 171 100% 6%; /* #00201b */
+    --on-secondary-fixed-variant: 172 100% 14%; /* #005047 */
+    --tertiary-fixed: 30 100% 86%; /* #ffdcbb */
+    --tertiary-fixed-dim: 31 100% 70%; /* #ffb869 */
+    --on-tertiary-fixed: 28 100% 9%; /* #2c1700 */
+    --on-tertiary-fixed-variant: 33 100% 20%; /* #673d00 */
+    --on-background: 220 8% 10%; /* #1a1c1b */
+    --surface-variant: 240 4% 89%; /* #e2e3e1 */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-outline-variant;
+  }
+
+  body {
+    @apply bg-background text-on-surface antialiased;
+    font-family: 'Geist', sans-serif;
+  }
+}

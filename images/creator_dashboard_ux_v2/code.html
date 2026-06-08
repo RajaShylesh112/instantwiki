@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Creator Dashboard | InstantWiki</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Obsidian Light Theme Inspired Styles */
+        body {
+            background-color: #ffffff;
+            color: #1a1a1a;
+        }
+        .obsidian-card {
+            background-color: #ffffff;
+            border: 1px solid #e5e5e5;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .obsidian-card:hover {
+            border-color: #a78bfa;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-bottom: 1px solid #e5e5e5;
+        }
+        .primary-accent {
+            color: #a78bfa;
+        }
+        .bg-primary-accent {
+            background-color: #a78bfa;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#a78bfa",
+                        "on-primary": "#ffffff",
+                        "background": "#ffffff",
+                        "surface": "#ffffff",
+                        "on-surface": "#1a1a1a",
+                        "on-surface-variant": "#666666",
+                        "outline": "#e5e5e5",
+                        "outline-variant": "#f3f4f6",
+                        "secondary": "#4b5563",
+                        "tertiary": "#8b5cf6",
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "4px",
+                        "lg": "6px",
+                        "xl": "8px",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xxl": "48px",
+                        "page-margin-desktop": "80px",
+                        "base": "8px",
+                        "xl": "32px",
+                        "sm": "8px",
+                        "gutter": "24px",
+                        "xs": "4px",
+                        "lg": "24px",
+                        "md": "16px",
+                        "page-margin-mobile": "20px"
+                    },
+                    "fontFamily": {
+                        "body": ["Inter", "sans-serif"],
+                        "headline": ["Inter", "sans-serif"],
+                        "display": ["Inter", "sans-serif"],
+                        "label": ["Inter", "sans-serif"]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body overflow-x-hidden">
+<nav class="sticky top-0 z-50 glass-nav px-page-margin-desktop py-3">
+<div class="max-w-[1200px] mx-auto flex items-center justify-between">
+<div class="flex items-center gap-md">
+<div class="w-8 h-8 bg-primary rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-xl">auto_stories</span>
+</div>
+<span class="font-headline font-bold text-lg tracking-tight text-on-surface">InstantWiki</span>
+</div>
+<div class="flex items-center gap-8">
+<a class="font-label font-semibold text-primary border-b-2 border-primary pb-1" href="#">Dashboard</a>
+<a class="font-label font-medium text-on-surface-variant hover:text-primary transition-colors" href="#">Sources</a>
+<a class="font-label font-medium text-on-surface-variant hover:text-primary transition-colors" href="#">Analytics</a>
+<a class="font-label font-medium text-on-surface-variant hover:text-primary transition-colors" href="#">Settings</a>
+<a class="font-label font-medium text-on-surface-variant hover:text-primary transition-colors" href="#">Members</a>
+</div>
+<div class="flex items-center gap-md">
+<button class="bg-primary text-white px-4 py-1.5 rounded text-sm font-semibold hover:opacity-90 transition-opacity">Upgrade</button>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary">account_circle</span>
+</div>
+</div>
+</nav>
+<main class="max-w-[1200px] mx-auto min-h-screen p-page-margin-desktop w-full">
+<!-- Header Section -->
+<header class="flex justify-between items-end mb-xxl">
+<div>
+<h1 class="text-3xl font-bold text-on-surface tracking-tight">Welcome back, Alex.</h1>
+<p class="text-on-surface-variant mt-1 text-sm">Your knowledge base is 12% more dense this week.</p>
+</div>
+<div class="flex gap-md">
+<button class="bg-white border border-primary text-primary px-lg py-2.5 rounded flex items-center gap-sm font-semibold transition-all active:scale-95 shadow-sm hover:bg-primary/5">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'wght' 600;">library_add</span>
+                Add Knowledge
+            </button>
+<button class="bg-primary text-white px-lg py-2.5 rounded flex items-center gap-sm font-semibold transition-all active:scale-95 shadow-sm hover:shadow-md">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'wght' 600;">add</span>
+                New Wiki
+            </button>
+</div>
+</header>
+<!-- Metrics Row -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-lg mb-xxl">
+<div class="obsidian-card p-lg rounded-lg transition-all">
+<div class="flex items-center justify-between mb-4">
+<span class="material-symbols-outlined text-primary">auto_stories</span>
+<span class="text-primary text-xs font-bold bg-primary/10 px-2 py-0.5 rounded">+2 this month</span>
+</div>
+<h3 class="text-[11px] text-on-surface-variant uppercase tracking-wider font-bold">Active Wikis</h3>
+<p class="text-3xl font-bold mt-1">12</p>
+</div>
+<div class="obsidian-card p-lg rounded-lg transition-all">
+<div class="flex items-center justify-between mb-4">
+<span class="material-symbols-outlined text-secondary">hub</span>
+<span class="text-secondary text-xs font-bold bg-secondary/10 px-2 py-0.5 rounded">High Density</span>
+</div>
+<h3 class="text-[11px] text-on-surface-variant uppercase tracking-wider font-bold">Concepts Synthesized</h3>
+<p class="text-3xl font-bold mt-1">4.2k</p>
+</div>
+<div class="obsidian-card p-lg rounded-lg transition-all">
+<div class="flex items-center justify-between mb-4">
+<span class="material-symbols-outlined text-tertiary">source</span>
+<span class="text-tertiary text-xs font-bold bg-tertiary/10 px-2 py-0.5 rounded">3 Pending</span>
+</div>
+<h3 class="text-[11px] text-on-surface-variant uppercase tracking-wider font-bold">Total Sources</h3>
+<p class="text-3xl font-bold mt-1">85</p>
+</div>
+</section>
+<!-- Wikis List View -->
+<section class="obsidian-card rounded-lg overflow-hidden mb-xxl">
+<div class="px-lg py-md border-b border-outline flex justify-between items-center bg-outline-variant/30">
+<h2 class="text-lg font-bold">My Wikis</h2>
+<div class="flex gap-md">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
+<input class="pl-9 pr-md py-1.5 bg-white border border-outline rounded text-sm focus:ring-1 focus:ring-primary focus:border-primary w-64 placeholder:text-on-surface-variant/50" placeholder="Search knowledge..." type="text"/>
+</div>
+<button class="px-2 py-1 text-on-surface-variant hover:bg-outline-variant rounded transition-colors border border-outline">
+<span class="material-symbols-outlined text-[20px] align-middle">filter_list</span>
+</button>
+</div>
+</div>
+<div class="divide-y divide-outline">
+<!-- Wiki Item 1 - ML Atlas -->
+<div class="p-lg flex items-center justify-between hover:bg-outline-variant/20 transition-colors group">
+<div class="flex items-center gap-lg">
+<div class="w-10 h-10 rounded bg-outline-variant overflow-hidden flex-shrink-0 border border-outline">
+<img alt="ML Atlas Thumbnail" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDsX00rEH8c3enIiYOr5rbLPX9YvL1Jl2a6g3XnpPsHkb3lOWJ3h6O2WgCtfji_0EnO1lcOMeoxwJ-ka6Hg-LlzTmTmrqdi2dxMDYpNrZMEfPBYsPtQ3l5FmF5W9aQY58les33ewQvVF2Mp0cHJ3B6DAUy7Iqh-I1UuwVH8ZilB6mSN89PW4JguG3Kc3fuW7pHN0j-_PnM47MJI9lL2ZYVZ5JaB8T4Se9vYGDZnR2QVW08DptQ7ZkHaT2fbqvebv7xa5ds_YENYGu0"/>
+</div>
+<div>
+<h4 class="text-sm font-bold text-on-surface group-hover:text-primary transition-colors">ML Atlas</h4>
+<p class="text-xs text-on-surface-variant">Last updated 2 hours ago • 23 Pages, 81 Concepts</p>
+</div>
+</div>
+<div class="flex items-center gap-xl">
+<span class="px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold rounded uppercase border border-green-200">Published</span>
+<div class="flex -space-x-1.5">
+<div class="w-6 h-6 rounded-full border border-white bg-primary text-white flex items-center justify-center text-[9px] font-bold">A</div>
+</div>
+<button class="p-1 text-on-surface-variant hover:text-primary opacity-0 group-hover:opacity-100 transition-all">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</div>
+<!-- Wiki Item 2 - Travel Guide -->
+<div class="p-lg flex items-center justify-between hover:bg-outline-variant/20 transition-colors group">
+<div class="flex items-center gap-lg">
+<div class="w-10 h-10 rounded bg-outline-variant overflow-hidden flex-shrink-0 border border-outline">
+<img alt="Travel Guide Thumbnail" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCwcF1RGvaBNfh_F29qCCoynJChhb6KYEBGNRnRg9-kQ7V5zLEgdWIaR4oSR_g-n-zXjFfTKW4D1pVLXnebKxHadYRcwO8o40tQpNqTLPZ6NvWRQcoOaVF98IRtnLYhctIGav6X78_uR8LdOrL-GY6H1TCbPE2IZ4N5_sz9ivXFfWhxEQa0qXpKQf49XJBO1MB5s-iBaxBeub9DPwp40Yg6Y0F-G8cdiqrnXPRHZZwgE8A4hLMQWGM53mE_aepVhMaf9iJGUA1JmmQ"/>
+</div>
+<div>
+<h4 class="text-sm font-bold text-on-surface group-hover:text-primary transition-colors">Travel Guide</h4>
+<p class="text-xs text-on-surface-variant">Last updated 1 day ago • 14 Pages, 42 Concepts</p>
+</div>
+</div>
+<div class="flex items-center gap-xl">
+<span class="px-2 py-0.5 bg-gray-100 text-gray-600 text-[10px] font-bold rounded uppercase border border-gray-200">Draft</span>
+<div class="flex -space-x-1.5">
+<div class="w-6 h-6 rounded-full border border-white bg-tertiary text-white flex items-center justify-center text-[9px] font-bold">MK</div>
+</div>
+<button class="p-1 text-on-surface-variant hover:text-primary opacity-0 group-hover:opacity-100 transition-all">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</div>
+<!-- Wiki Item 3 -->
+<div class="p-lg flex items-center justify-between hover:bg-outline-variant/20 transition-colors group">
+<div class="flex items-center gap-lg">
+<div class="w-10 h-10 rounded bg-outline-variant overflow-hidden flex-shrink-0 border border-outline">
+<img alt="Quantum Physics Wiki Thumbnail" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAntqtBtxtvIitysJaOo9k4qmOG-_FMIAINJOxQzbYyq_y20pqP2arIXrVfjMz7CQycf9l5iXnb35K8p9SwEQWI6bn5kYhoM3h4PncnTBoFfrQnrmjzoOjlOoK01lJHUDDjYRHHK_VMYSfmW9roS-sMtwyrouNjd58eQ-woQqTARNR7tR3PfxHUK8fsCpCMpeVSP4Ey5ECdol6Q2JRdDmV7PTC2tYnZsvB-ceEnoakEOQUfvyeXK8jEcB9ADaaDGAh7gD9dZXIa17Q"/>
+</div>
+<div>
+<h4 class="text-sm font-bold text-on-surface group-hover:text-primary transition-colors">Quantum Physics Wiki</h4>
+<p class="text-xs text-on-surface-variant">Last updated 2 hours ago • 432 articles</p>
+</div>
+</div>
+<div class="flex items-center gap-xl">
+<span class="px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold rounded uppercase border border-green-200">Published</span>
+<div class="flex -space-x-1.5">
+<div class="w-6 h-6 rounded-full border border-white bg-gray-200 flex items-center justify-center text-[9px] font-bold">JD</div>
+<div class="w-6 h-6 rounded-full border border-white bg-primary text-white flex items-center justify-center text-[9px] font-bold">A</div>
+</div>
+<button class="p-1 text-on-surface-variant hover:text-primary opacity-0 group-hover:opacity-100 transition-all">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</div>
+</div>
+<div class="p-3 bg-outline-variant/20 text-center border-t border-outline">
+<button class="text-primary text-sm font-bold hover:underline decoration-1 underline-offset-4">
+                View All Wikis (12)
+            </button>
+</div>
+</section>
+<!-- Insights/Analytics Section -->
+<section class="mt-xxl">
+<h2 class="text-xl font-bold mb-lg">Knowledge Trends</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-lg">
+<div class="obsidian-card p-lg rounded-lg">
+<div class="flex justify-between items-center mb-xl">
+<h4 class="text-sm font-bold">Recent Synthesis AI Activity</h4>
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">timeline</span>
+</div>
+<div class="space-y-4">
+<div class="flex items-center justify-between text-xs">
+<span class="text-on-surface-variant">New entities found</span>
+<span class="font-bold text-primary">+124</span>
+</div>
+<div class="w-full bg-outline-variant rounded-full h-1 overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 70%"></div>
+</div>
+<div class="flex items-center justify-between text-xs mt-4">
+<span class="text-on-surface-variant">Cross-wiki links generated</span>
+<span class="font-bold text-secondary">2,103</span>
+</div>
+<div class="w-full bg-outline-variant rounded-full h-1 overflow-hidden">
+<div class="bg-secondary h-full rounded-full" style="width: 45%"></div>
+</div>
+</div>
+</div>
+<div class="obsidian-card p-lg rounded-lg flex flex-col justify-center items-center text-center">
+<div class="w-12 h-12 rounded bg-primary/10 flex items-center justify-center mb-md">
+<span class="material-symbols-outlined text-primary text-2xl">auto_awesome</span>
+</div>
+<h4 class="text-md font-bold mb-1">AI Insight available</h4>
+<p class="text-xs text-on-surface-variant mb-6 max-w-xs">We've identified 3 potential new wikis based on your recent 85 source uploads.</p>
+<button class="text-primary font-bold px-6 py-2 border border-primary/30 rounded text-sm hover:bg-primary/5 transition-colors">
+                    Review Suggestions
+                </button>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer Component -->
+<footer class="max-w-[1200px] mx-auto px-page-margin-desktop py-xl border-t border-outline flex flex-col md:flex-row justify-between items-center w-full">
+<div class="text-center md:text-left mb-md md:mb-0">
+<h3 class="text-md font-bold text-primary mb-1">InstantWiki</h3>
+<p class="text-[10px] text-on-surface-variant">© 2024 InstantWiki Intelligence. Built for knowledge.</p>
+</div>
+<div class="flex flex-wrap gap-lg md:justify-end items-center">
+<a class="text-[10px] font-medium text-on-surface-variant hover:text-primary transition-opacity" href="#">Privacy Policy</a>
+<a class="text-[10px] font-medium text-on-surface-variant hover:text-primary transition-opacity" href="#">Terms of Service</a>
+<a class="text-[10px] font-medium text-on-surface-variant hover:text-primary transition-opacity" href="#">API Documentation</a>
+<a class="text-[10px] font-medium text-on-surface-variant hover:text-primary transition-opacity" href="#">Contact Support</a>
+</div>
+</footer>
+<!-- Global Floating Action Button -->
+<div class="fixed bottom-8 right-8 z-[100] group">
+<div class="absolute bottom-full right-0 mb-4 flex flex-col items-end gap-2 opacity-0 scale-90 translate-y-4 pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-300 origin-bottom-right">
+<button class="flex items-center gap-2 bg-white obsidian-card px-4 py-2 rounded-lg text-xs font-semibold hover:border-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">upload_file</span>
+            Upload PDF
+        </button>
+<button class="flex items-center gap-2 bg-white obsidian-card px-4 py-2 rounded-lg text-xs font-semibold hover:border-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">link</span>
+            Paste URL
+        </button>
+<button class="flex items-center gap-2 bg-white obsidian-card px-4 py-2 rounded-lg text-xs font-semibold hover:border-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">notes</span>
+            Paste Text
+        </button>
+</div>
+<button class="w-14 h-14 rounded-full bg-primary text-white shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[28px] group-hover:rotate-45 transition-transform duration-300">add</span>
+</button>
+</div>
+<script>
+    // Navigation active state logic
+    document.querySelectorAll('nav a').forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            document.querySelectorAll('nav a').forEach(t => {
+                t.classList.remove('text-primary', 'border-b-2', 'border-primary', 'font-semibold');
+                t.classList.add('text-on-surface-variant', 'font-medium');
+                t.classList.remove('pb-1');
+            });
+            tab.classList.add('text-primary', 'border-b-2', 'border-primary', 'font-semibold', 'pb-1');
+            tab.classList.remove('text-on-surface-variant', 'font-medium');
+        });
+    });
+
+    // Search bar focus effects
+    const searchInput = document.querySelector('input[type="text"]');
+    if(searchInput) {
+        searchInput.addEventListener('focus', () => {
+            searchInput.parentElement.classList.add('ring-1', 'ring-primary/20');
+        });
+        searchInput.addEventListener('blur', () => {
+            searchInput.parentElement.classList.remove('ring-1', 'ring-primary/20');
+        });
+    }
+</script>
+</body></html>

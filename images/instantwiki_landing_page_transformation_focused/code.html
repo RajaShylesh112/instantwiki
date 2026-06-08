@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>InstantWiki | Turn Documents into Knowledge</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;family=Geist:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-background": "#1a1c1b",
+                      "on-secondary-container": "#007164",
+                      "on-tertiary": "#ffffff",
+                      "secondary-fixed": "#6ef9e2",
+                      "primary-fixed-dim": "#d0bcff",
+                      "on-tertiary-container": "#fffbff",
+                      "tertiary-fixed-dim": "#ffb869",
+                      "surface-container": "#eeeeec",
+                      "on-tertiary-fixed": "#2c1700",
+                      "on-surface": "#1a1c1b",
+                      "on-secondary-fixed": "#00201b",
+                      "tertiary": "#855000",
+                      "on-secondary": "#ffffff",
+                      "on-secondary-fixed-variant": "#005047",
+                      "primary-fixed": "#e9ddff",
+                      "tertiary-fixed": "#ffdcbb",
+                      "primary-container": "#8455ef",
+                      "surface-tint": "#6d3bd7",
+                      "inverse-on-surface": "#f1f1ef",
+                      "background": "#f9f9f7",
+                      "outline-variant": "#cbc3d7",
+                      "surface-variant": "#e2e3e1",
+                      "on-surface-variant": "#494454",
+                      "surface-container-high": "#e8e8e6",
+                      "secondary-container": "#6ef9e2",
+                      "on-error": "#ffffff",
+                      "primary": "#6b38d4",
+                      "surface-bright": "#f9f9f7",
+                      "surface-container-low": "#f4f4f2",
+                      "on-primary-fixed": "#23005c",
+                      "error-container": "#ffdad6",
+                      "on-primary-container": "#fffbff",
+                      "surface-container-highest": "#e2e3e1",
+                      "outline": "#7b7486",
+                      "on-tertiary-fixed-variant": "#673d00",
+                      "surface": "#f9f9f7",
+                      "on-primary-fixed-variant": "#5516be",
+                      "surface-container-lowest": "#ffffff",
+                      "inverse-primary": "#d0bcff",
+                      "error": "#ba1a1a",
+                      "tertiary-container": "#a76500",
+                      "on-error-container": "#93000a",
+                      "secondary-fixed-dim": "#4ddcc6",
+                      "inverse-surface": "#2f3130",
+                      "secondary": "#006b5e",
+                      "surface-dim": "#dadad8",
+                      "on-primary": "#ffffff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "unit": "4px",
+                      "sidebar-width": "280px",
+                      "gutter": "24px",
+                      "margin-page": "64px",
+                      "container-max": "1200px"
+              },
+              "fontFamily": {
+                      "headline-md-mobile": ["Hanken Grotesk"],
+                      "display-lg": ["Hanken Grotesk"],
+                      "title-sm": ["Geist"],
+                      "headline-md": ["Hanken Grotesk"],
+                      "label-caps": ["Geist"],
+                      "body-md": ["Geist"],
+                      "code": ["Geist"]
+              },
+              "fontSize": {
+                      "headline-md-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "500"}],
+                      "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                      "title-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                      "headline-md": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+                      "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                      "body-md": ["15px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "code": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        body {
+            background-color: #FAFAF8;
+            color: #1a1c1b;
+            -webkit-font-smoothing: antialiased;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .ghost-border {
+            border: 1px solid #E5E7EB;
+        }
+        .hover-primary-glow:hover {
+            border-color: rgba(107, 56, 212, 0.15);
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md overflow-x-hidden">
+<!-- TopAppBar Navigation -->
+<header class="bg-surface fixed full-width top-0 z-50 border-b border-surface-variant">
+<div class="flex justify-between items-center h-16 px-margin-page max-w-container-max mx-auto w-full">
+<div class="flex items-center gap-8">
+<span class="font-display-lg text-title-sm font-semibold text-on-surface">InstantWiki</span>
+<nav class="hidden md:flex gap-6">
+<a class="text-on-surface-variant font-semibold border-b-2 border-primary hover:text-primary transition-colors duration-200" href="#">Examples</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors duration-200" href="#">Pricing</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-on-surface font-body-md cursor-pointer active:scale-95 transition-transform">Sign In</button>
+<button class="bg-primary text-on-primary px-5 py-2 rounded-lg font-body-md cursor-pointer active:scale-95 transition-all shadow-sm hover:brightness-110">Create Wiki</button>
+</div>
+</div>
+</header>
+<main class="pt-24">
+<!-- Centered Hero -->
+<section class="max-w-container-max mx-auto px-margin-page py-24 text-center">
+<div class="inline-block px-4 py-1 mb-8 bg-secondary-container text-on-secondary-container rounded-full font-label-caps text-label-caps">
+                REVOLUTIONIZE YOUR KNOWLEDGE
+            </div>
+<h1 class="font-display-lg text-display-lg mb-6 text-on-surface">
+                Your documents already contain <br/>a website. We build it.
+            </h1>
+<p class="max-w-2xl mx-auto text-on-surface-variant font-body-md mb-10 text-lg leading-relaxed">
+                Upload PDFs, notes, research papers, or documentation. Instant Wiki turns them into a searchable website with pages, links, and knowledge graphs.
+            </p>
+<div class="flex justify-center gap-4">
+<button class="bg-primary text-on-primary px-8 py-3 rounded-lg font-title-sm cursor-pointer hover:shadow-xl transition-all active:scale-95">
+                    Create Wiki
+                </button>
+<button class="bg-transparent ghost-border text-on-surface px-8 py-3 rounded-lg font-title-sm cursor-pointer hover:bg-surface-container transition-all">
+                    View Demo
+                </button>
+</div>
+</section>
+<!-- Transformation Showcase -->
+<section class="max-w-container-max mx-auto px-margin-page py-24">
+<div class="flex flex-col items-center">
+<h2 class="font-headline-md text-headline-md mb-12 text-on-surface">The Transformation</h2>
+<div class="w-full rounded-xl overflow-hidden shadow-2xl ghost-border bg-white p-8">
+<img alt="Transformation Illustration" class="w-full h-auto object-cover rounded-lg" data-alt="A side-by-side conceptual visualization showcasing the evolution of information. On the left, a chaotic, cluttered pile of physical and digital document icons like PDFs, text files, and research papers are scattered across a neutral grey background. On the right, those same documents have been transformed into a sleek, organized digital wiki interface with a clean sidebar, structured hierarchy, and a neural network diagram, all presented in a bright, minimalist, high-precision UI style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB7U4f8cEc9DJV8j4LIn7gT_-X3CDj7I_DpgnyAii7iv82vdbOH9PGRCGofaCGPs1hs9ZeLNiD1yIfLxMOiqJWyWlDMEtWyhpTeMyQGOSIukVoZu4d-4cfulMlrQ48GcGj0jTsCA07CKqU8v57Uqum9of6l-XdaOJWlc65czWjkftimydMR-azkvM7n3_BQvcmBpoLbUrpCLY7qJQIlpy8OqzfQgvMGuYZlygnGVBoFO-jq4QNv-w8RYiseNQugiC-JFWd8zq7UJwc"/>
+</div>
+</div>
+</section>
+<!-- Interactive Wiki Preview (Dark Block) -->
+<section class="bg-[#0B0D12] py-32 mt-24">
+<div class="max-w-container-max mx-auto px-margin-page text-center">
+<h2 class="font-headline-md text-headline-md mb-16 text-white">Interactive Wiki Preview</h2>
+<div class="relative group">
+<div class="absolute -inset-1 bg-gradient-to-r from-primary to-secondary rounded-2xl blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
+<div class="relative bg-[#1a1c1b] rounded-2xl border border-white/10 overflow-hidden shadow-2xl">
+<img alt="Knowledge Graph Preview" class="w-full h-auto" data-alt="A high-fidelity dark mode user interface featuring a complex knowledge graph visualization. The central workspace shows a glowing web of interconnected nodes and lines in shades of vibrant purple and electric teal. A sleek sidebar on the left displays a hierarchical navigation tree with labels like 'Artificial Intelligence' and 'Neural Networks'. The overall aesthetic is professional, futuristic, and deeply analytical, resembling a premium researcher's dashboard." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBfDjCuiUD4rl6trlanrkFNerkzA1uhC-379YO1pCsd9ksUBiMzcCFBFtdOoHqzu3glZ60bYFItMiQ9DRf90YLUJn16te6A_iJj0lyLr2HCkgT9xulh7RliVM87ALx_M95xAEaX1VnlBwb2ySjpgbdZ2_nVkhMfciqZZPaZOVJ3pkCA9nRgLxLPh8cG0cppMDadj4MYN5iLK4TYhIZGj0cpKVRpZDQ7qcb-20Tkht09SWWhpn2u0LPX0Sai-imWeMBrLMHDhPIInNM"/>
+</div>
+</div>
+</div>
+</section>
+<!-- Features Bento Grid -->
+<section class="max-w-container-max mx-auto px-margin-page py-32">
+<h2 class="font-headline-md text-headline-md mb-12 text-on-surface text-center">What Instant Wiki Builds</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Feature 1: Pages -->
+<div class="bg-white p-10 rounded-xl ghost-border hover-primary-glow transition-all duration-300">
+<div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-primary">description</span>
+</div>
+<h3 class="font-title-sm text-title-sm mb-4 text-on-surface">Pages</h3>
+<p class="text-on-surface-variant font-body-md leading-relaxed">
+                        Generate structured pages from concepts automatically. Every document is parsed into a clean, readable web experience.
+                    </p>
+</div>
+<!-- Feature 2: Links -->
+<div class="bg-white p-10 rounded-xl ghost-border hover-primary-glow transition-all duration-300">
+<div class="w-12 h-12 bg-secondary-container/30 rounded-lg flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-secondary">link</span>
+</div>
+<h3 class="font-title-sm text-title-sm mb-4 text-on-surface">Links</h3>
+<p class="text-on-surface-variant font-body-md leading-relaxed">
+                        Connect ideas like Wikipedia. Our engine identifies cross-references between your documents to create a dense knowledge net.
+                    </p>
+</div>
+<!-- Feature 3: Graphs -->
+<div class="bg-white p-10 rounded-xl ghost-border hover-primary-glow transition-all duration-300">
+<div class="w-12 h-12 bg-tertiary-fixed/30 rounded-lg flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-tertiary">hub</span>
+</div>
+<h3 class="font-title-sm text-title-sm mb-4 text-on-surface">Graphs</h3>
+<p class="text-on-surface-variant font-body-md leading-relaxed">
+                        Visualize relationships. See the big picture with interactive maps of how your research papers and notes relate to each other.
+                    </p>
+</div>
+</div>
+</section>
+<!-- Public Wiki Gallery -->
+<section class="bg-surface-container-low py-32">
+<div class="max-w-container-max mx-auto px-margin-page">
+<div class="flex justify-between items-end mb-12">
+<div>
+<h2 class="font-headline-md text-headline-md text-on-surface">Public Wiki Gallery</h2>
+<p class="text-on-surface-variant mt-2">Explore knowledge bases built by our community</p>
+</div>
+<button class="text-primary font-semibold flex items-center gap-2 hover:underline">
+                        View All <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+<div class="rounded-xl overflow-hidden ghost-border bg-white shadow-sm">
+<img alt="Wiki Gallery Preview" class="w-full h-auto" data-alt="A clean grid of four white cards, each representing a different public wiki. The cards feature stylized purple icons: a brain for 'Machine Learning Atlas', a rocket for 'Startup Research Hub', a column for 'History of Rome', and a snake for 'Python Knowledge Base'. The design is extremely airy with massive white margins, elegant purple typography, and a sophisticated, academic aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCatV4c8vhzmSo8UAjfW83-rACYxrydalDL-ddus26ID3nS1Vce6xXSHgvnxVL0ua98Fg165lljHvpaTjWJJS4OPAsRQT3cuVdi-aTeU46JdSbHAvpTj2EF8-E_9o1c_UWdpo1tbUu6rX0b61Le7XXI1Afh8TdEF_4YNaYbVegzUJLrhGWj4ESl2zf1vBa70MRzHgZMVB7rJL14HCUsE5USM-vgsMLLPKCD_w0ejbfiJxYyjYhKDwZW1y0NaNxi4LB-mw6IJSGzOQs"/>
+</div>
+</div>
+</section>
+<!-- How It Works -->
+<section class="max-w-container-max mx-auto px-margin-page py-32">
+<div class="text-center mb-16">
+<h2 class="font-headline-md text-headline-md text-on-surface">How It Works</h2>
+</div>
+<div class="flex flex-col md:flex-row justify-between items-start gap-12">
+<div class="flex-1 text-center">
+<div class="text-6xl font-display-lg text-primary/10 mb-6">01</div>
+<h3 class="font-title-sm text-title-sm mb-3">Upload</h3>
+<p class="text-on-surface-variant">Drag and drop your folders of PDFs, Markdowns, or Word docs.</p>
+</div>
+<div class="hidden md:flex items-center pt-8 text-outline-variant">
+<span class="material-symbols-outlined">trending_flat</span>
+</div>
+<div class="flex-1 text-center">
+<div class="text-6xl font-display-lg text-primary/10 mb-6">02</div>
+<h3 class="font-title-sm text-title-sm mb-3">Analyze</h3>
+<p class="text-on-surface-variant">The system scans your files to identify topics and connections.</p>
+</div>
+<div class="hidden md:flex items-center pt-8 text-outline-variant">
+<span class="material-symbols-outlined">trending_flat</span>
+</div>
+<div class="flex-1 text-center">
+<div class="text-6xl font-display-lg text-primary/10 mb-6">03</div>
+<h3 class="font-title-sm text-title-sm mb-3">Publish</h3>
+<p class="text-on-surface-variant">Instantly browse your documents as a professional website.</p>
+</div>
+</div>
+</section>
+<!-- Bottom CTA -->
+<section class="max-w-container-max mx-auto px-margin-page py-24 text-center">
+<div class="bg-primary p-16 rounded-3xl text-on-primary">
+<h2 class="font-headline-md text-headline-md mb-6">Ready to organize your mind?</h2>
+<p class="mb-10 text-lg opacity-90 max-w-xl mx-auto">Join thousands of researchers and creators turning their archives into active knowledge.</p>
+<button class="bg-white text-primary px-10 py-4 rounded-xl font-title-sm hover:scale-105 transition-transform">
+                    Start Your Wiki
+                </button>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-background border-t border-surface-variant py-gutter">
+<div class="flex flex-col md:flex-row justify-between items-center px-margin-page max-w-container-max mx-auto w-full">
+<div class="mb-6 md:mb-0">
+<span class="font-label-caps text-label-caps text-on-surface uppercase tracking-widest">INSTANT WIKI</span>
+<p class="text-on-surface-variant mt-2 text-sm">Built by creators. Powered by Instant Wiki.</p>
+</div>
+<div class="flex flex-col items-center md:items-end gap-2">
+<div class="flex gap-8 mb-2">
+<a class="text-on-surface-variant hover:text-primary transition-all duration-300" href="#">Privacy</a>
+<a class="text-on-surface-variant hover:text-primary transition-all duration-300" href="#">Terms</a>
+<a class="text-on-surface-variant hover:text-primary transition-all duration-300" href="#">Support</a>
+</div>
+<span class="text-secondary font-body-md bg-secondary-container/20 px-3 py-1 rounded-full text-xs">12,483 pages generated today</span>
+</div>
+</div>
+</footer>
+<script>
+        // Simple scroll reveal interaction
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('opacity-100', 'translate-y-0');
+                    entry.target.classList.remove('opacity-0', 'translate-y-10');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('section').forEach(section => {
+            section.classList.add('transition-all', 'duration-1000', 'opacity-0', 'translate-y-10');
+            observer.observe(section);
+        });
+    </script>
+</body></html>
