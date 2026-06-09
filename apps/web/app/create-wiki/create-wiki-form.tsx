@@ -119,7 +119,7 @@ export default function CreateWikiForm({ username }: CreateWikiFormProps) {
       })
 
       if (res.success && res.redirectUrl) {
-        router.push(res.redirectUrl)
+        router.push(res.redirectUrl + "/sources")
         router.refresh()
       } else {
         setFormError(res.error || "Failed to create wiki.")

@@ -92,6 +92,6 @@
 
   body {
     @apply bg-background text-on-surface antialiased;
-    font-family: 'Geist', sans-serif;
+    font-family: var(--font-geist-sans), 'Geist', sans-serif;
   }
 }

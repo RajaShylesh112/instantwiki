@@ -5,11 +5,7 @@ import Header from "@/components/header";
 import { Sparkles, FileText, Link as LinkIcon, Network, Compass, ArrowRight } from "lucide-react";
 
 export default async function LandingPage() {
-  // 1. Redirect to profile page if user is already authenticated
   const session = await auth();
-  if (session?.user?.username) {
-    redirect(`/u/${session.user.username}`);
-  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAFAF8] text-[#1A1C1B]">
@@ -37,16 +33,26 @@ export default async function LandingPage() {
 
           {/* Action buttons */}
           <div className="flex justify-center gap-4 pt-4">
-            <Link href="/signup">
-              <button className="bg-[#6b38d4] text-white hover:brightness-110 shadow-sm transition-all font-semibold px-8 py-3 rounded-lg text-sm active:scale-95">
-                Create Wiki
-              </button>
-            </Link>
-            <Link href="/signin">
-              <button className="bg-transparent border border-slate-200 hover:bg-slate-50 text-slate-700 transition-all font-semibold px-8 py-3 rounded-lg text-sm">
-                Sign In
-              </button>
-            </Link>
+            {session?.user ? (
+              <Link href="/workspaces">
+                <button className="bg-[#6b38d4] text-white hover:brightness-110 shadow-sm transition-all font-semibold px-8 py-3 rounded-lg text-sm active:scale-95">
+                  Go to Workspaces
+                </button>
+              </Link>
+            ) : (
+              <>
+                <Link href="/signup">
+                  <button className="bg-[#6b38d4] text-white hover:brightness-110 shadow-sm transition-all font-semibold px-8 py-3 rounded-lg text-sm active:scale-95">
+                    Create Wiki
+                  </button>
+                </Link>
+                <Link href="/signin">
+                  <button className="bg-transparent border border-slate-200 hover:bg-slate-50 text-slate-700 transition-all font-semibold px-8 py-3 rounded-lg text-sm">
+                    Sign In
+                  </button>
+                </Link>
+              </>
+            )}
           </div>
         </section>
 

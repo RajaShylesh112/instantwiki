@@ -112,8 +112,29 @@ export default async function WikiLayout({ children, params }: WikiLayoutProps) 
       </aside>
 
       {/* Main Content Pane */}
-      <main className="flex-1 overflow-y-auto bg-[#FAFAF8]">
-        {children}
+      <main className="flex-1 flex flex-col h-screen overflow-hidden bg-[#FAFAF8]">
+        {/* Workspace Top Navbar */}
+        <header className="h-16 border-b border-slate-200 bg-white flex items-center justify-between px-8 shrink-0 shadow-2xs">
+          <div className="flex items-center gap-3">
+            <span className="text-[10px] font-extrabold font-mono text-[#006b5e] bg-[#006b5e]/10 border border-[#006b5e]/20 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+              Workspace
+            </span>
+            <span className="text-base sm:text-lg font-extrabold text-slate-900 font-sans truncate max-w-[200px] sm:max-w-[400px]">
+              {wiki.title}
+            </span>
+          </div>
+          <Link
+            href="/"
+            className="inline-flex items-center px-4 py-2 text-sm font-bold text-slate-600 hover:text-white border border-slate-200 hover:border-slate-900 bg-white hover:bg-slate-900 rounded-xl transition-all duration-200 shadow-sm"
+          >
+            Exit Workspace
+          </Link>
+        </header>
+
+        {/* Scrollable Content Container */}
+        <div className="flex-1 overflow-y-auto">
+          {children}
+        </div>
       </main>
     </div>
   )
