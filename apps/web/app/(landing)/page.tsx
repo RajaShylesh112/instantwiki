@@ -56,35 +56,35 @@ export default async function LandingPage() {
             <h2 className="text-3xl font-extrabold text-[#1a1c1b] tracking-tight mb-8">
               The Transformation
             </h2>
-            <div className="w-full rounded-2xl overflow-hidden shadow-lg border border-slate-200 bg-white p-6 md:p-8 hover:border-[#6b38d4]/15 transition-colors duration-300">
+            <div className="w-full rounded-2xl overflow-hidden shadow-sm border border-slate-200 bg-white p-6 md:p-8 hover:border-[#6b38d4]/15 transition-colors duration-300">
               <img
-                src="/images/landing_page_image_1/screen.png"
-                alt="Transformation Illustration"
+                src="/images/stitch_ai_powered_wiki_builder (2)/screen.png"
+                alt="Before and After Transformation"
                 className="w-full h-auto object-cover rounded-xl border border-slate-100"
               />
             </div>
           </div>
         </section>
 
-        {/* Interactive Wiki Preview (Dark Block) */}
-        <section className="bg-[#0B0D12] py-24 border-t border-slate-900 border-b">
+        {/* Interactive Wiki Preview (Luminous Block) */}
+        <section className="bg-[#f4f4f2] py-24 border-t border-slate-200 border-b">
           <div className="max-w-[1200px] mx-auto px-16 text-center space-y-12">
             <div className="space-y-3">
-              <h2 className="text-3xl font-extrabold text-white tracking-tight">
+              <h2 className="text-3xl font-extrabold text-[#1a1c1b] tracking-tight">
                 Interactive Wiki Preview
               </h2>
-              <p className="text-slate-400 text-sm max-w-lg mx-auto font-serif">
+              <p className="text-slate-500 text-sm max-w-lg mx-auto font-serif">
                 Explore document links and entities through our dynamic force-directed workspace canvas.
               </p>
             </div>
             
             <div className="relative group max-w-4xl mx-auto">
-              <div className="absolute -inset-1 bg-gradient-to-r from-[#6b38d4] to-[#006b5e] rounded-2xl blur opacity-25 group-hover:opacity-35 transition duration-1000" />
-              <div className="relative bg-[#1A1C1B] rounded-2xl border border-white/10 overflow-hidden shadow-2xl">
+              <div className="absolute -inset-1 bg-gradient-to-r from-[#6b38d4]/20 to-[#006b5e]/20 rounded-2xl blur opacity-30 group-hover:opacity-50 transition duration-1000" />
+              <div className="relative bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xl">
                 <img
-                  src="/images/landing_page_image_2/screen.png"
+                  src="/images/stitch_ai_powered_wiki_builder (3)/screen.png"
                   alt="Knowledge Graph Preview"
-                  className="w-full h-auto"
+                  className="w-full h-auto block"
                 />
               </div>
             </div>
