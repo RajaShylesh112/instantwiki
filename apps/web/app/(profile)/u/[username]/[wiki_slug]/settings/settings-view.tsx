@@ -95,7 +95,7 @@ export default function SettingsView({ username, wikiSlug }: SettingsViewProps) 
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3 py-2 text-sm text-slate-900 bg-white border border-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors"
+              className="w-full px-3 py-2 text-sm text-slate-900 bg-white border border-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#6b38d4] transition-colors"
               id="settings-input-title"
             />
           </div>
@@ -138,7 +138,7 @@ export default function SettingsView({ username, wikiSlug }: SettingsViewProps) 
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3 py-2 text-sm text-slate-900 bg-white border border-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors"
+              className="w-full px-3 py-2 text-sm text-slate-900 bg-white border border-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#6b38d4] transition-colors"
               id="settings-input-desc"
             />
           </div>
@@ -154,7 +154,7 @@ export default function SettingsView({ username, wikiSlug }: SettingsViewProps) 
               {/* Private */}
               <label className={`border rounded-lg p-3.5 flex items-start gap-3 cursor-pointer transition-all ${
                 visibility === "PRIVATE"
-                  ? "border-indigo-600 bg-indigo-50/20 shadow-xs"
+                  ? "border-[#6b38d4] bg-[#6b38d4]/10 shadow-xs"
                   : "border-slate-200 bg-white hover:bg-slate-50/50"
               }`}>
                 <input
@@ -163,7 +163,7 @@ export default function SettingsView({ username, wikiSlug }: SettingsViewProps) 
                   value="PRIVATE"
                   checked={visibility === "PRIVATE"}
                   onChange={() => setVisibility("PRIVATE")}
-                  className="mt-1 h-3.5 w-3.5 text-indigo-650 focus:ring-indigo-500 border-slate-300"
+                  className="mt-1 h-3.5 w-3.5 text-[#6b38d4] focus:ring-[#6b38d4] border-slate-300"
                 />
                 <div className="space-y-0.5">
                   <span className="text-xs font-bold text-slate-900 flex items-center gap-1">
@@ -178,7 +178,7 @@ export default function SettingsView({ username, wikiSlug }: SettingsViewProps) 
               {/* Unlisted */}
               <label className={`border rounded-lg p-3.5 flex items-start gap-3 cursor-pointer transition-all ${
                 visibility === "UNLISTED"
-                  ? "border-indigo-600 bg-indigo-50/20 shadow-xs"
+                  ? "border-[#6b38d4] bg-[#6b38d4]/10 shadow-xs"
                   : "border-slate-200 bg-white hover:bg-slate-50/50"
               }`}>
                 <input
@@ -187,7 +187,7 @@ export default function SettingsView({ username, wikiSlug }: SettingsViewProps) 
                   value="UNLISTED"
                   checked={visibility === "UNLISTED"}
                   onChange={() => setVisibility("UNLISTED")}
-                  className="mt-1 h-3.5 w-3.5 text-indigo-650 focus:ring-indigo-500 border-slate-300"
+                  className="mt-1 h-3.5 w-3.5 text-[#6b38d4] focus:ring-[#6b38d4] border-slate-300"
                 />
                 <div className="space-y-0.5">
                   <span className="text-xs font-bold text-slate-900 flex items-center gap-1">
@@ -202,7 +202,7 @@ export default function SettingsView({ username, wikiSlug }: SettingsViewProps) 
               {/* Public */}
               <label className={`border rounded-lg p-3.5 flex items-start gap-3 cursor-pointer transition-all ${
                 visibility === "PUBLIC"
-                  ? "border-indigo-600 bg-indigo-50/20 shadow-xs"
+                  ? "border-[#6b38d4] bg-[#6b38d4]/10 shadow-xs"
                   : "border-slate-200 bg-white hover:bg-slate-50/50"
               }`}>
                 <input
@@ -211,11 +211,11 @@ export default function SettingsView({ username, wikiSlug }: SettingsViewProps) 
                   value="PUBLIC"
                   checked={visibility === "PUBLIC"}
                   onChange={() => setVisibility("PUBLIC")}
-                  className="mt-1 h-3.5 w-3.5 text-indigo-655 focus:ring-indigo-500 border-slate-300"
+                  className="mt-1 h-3.5 w-3.5 text-[#6b38d4] focus:ring-[#6b38d4] border-slate-300"
                 />
                 <div className="space-y-0.5">
                   <span className="text-xs font-bold text-slate-900 flex items-center gap-1">
-                    <Globe className="h-3.5 w-3.5 text-blue-600" /> Public
+                    <Globe className="h-3.5 w-3.5 text-[#006b5e]" /> Public
                   </span>
                   <p className="text-[10px] text-slate-505 leading-normal font-mono">
                     Indexed and visible to everyone.

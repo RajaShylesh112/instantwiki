@@ -123,7 +123,7 @@ export default function WikiSearch({ username, wikiSlug }: WikiSearchProps) {
           }}
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
-          className="w-full pl-9 pr-9 py-2 text-sm text-slate-900 placeholder-slate-400 bg-white border border-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 font-mono transition-shadow shadow-xs hover:border-slate-300"
+          className="w-full pl-9 pr-9 py-2 text-sm text-slate-900 placeholder-slate-400 bg-white border border-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#6b38d4] focus:border-[#6b38d4] font-mono transition-shadow shadow-xs hover:border-slate-300"
           id="home-search-input"
         />
         {query && (
@@ -164,7 +164,7 @@ export default function WikiSearch({ username, wikiSlug }: WikiSearchProps) {
                           isSelected ? "bg-slate-50 text-slate-900" : "text-slate-700"
                         }`}
                       >
-                        <BookOpen className="h-4 w-4 text-indigo-500 mt-0.5 shrink-0" />
+                        <BookOpen className="h-4 w-4 text-[#6b38d4] mt-0.5 shrink-0" />
                         <div>
                           <div className="text-xs font-semibold">{item.title}</div>
                           {item.subtitle && (

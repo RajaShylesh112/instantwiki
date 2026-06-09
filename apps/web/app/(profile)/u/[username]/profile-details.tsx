@@ -21,12 +21,12 @@ export default function ProfileDetails({ user, isOwner, isMocked }: ProfileDetai
   return (
     <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-6 shadow-sm hover:shadow-md transition-all duration-300 font-sans text-left relative overflow-hidden">
       {/* Decorative accent top line */}
-      <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600" />
+      <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#6b38d4] via-[#8455ef] to-[#006b5e]" />
       
       {/* Profile Avatar Card */}
       <div className="flex flex-col items-center text-center space-y-5 pt-2">
         <div className="relative group">
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full blur-sm opacity-20 group-hover:opacity-40 transition-opacity" />
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-[#6b38d4] to-[#006b5e] rounded-full blur-sm opacity-20 group-hover:opacity-40 transition-opacity" />
           
           {user.image ? (
             <img
@@ -36,8 +36,8 @@ export default function ProfileDetails({ user, isOwner, isMocked }: ProfileDetai
             />
           ) : (
             <div className="relative h-24 w-24 rounded-full bg-slate-50 flex items-center justify-center border-4 border-white shadow-sm">
-              <div className="h-full w-full rounded-full bg-indigo-50/50 flex items-center justify-center">
-                <User className="h-10 w-10 text-indigo-400" />
+              <div className="h-full w-full rounded-full bg-[#6b38d4]/10 flex items-center justify-center">
+                <User className="h-10 w-10 text-[#6b38d4]" />
               </div>
             </div>
           )}
@@ -45,7 +45,7 @@ export default function ProfileDetails({ user, isOwner, isMocked }: ProfileDetai
           {isOwner && (
             <button
               onClick={() => setIsModalOpen(true)}
-              className="absolute bottom-0 right-0 p-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 hover:scale-105 transition-all shadow-md border-2 border-white"
+              className="absolute bottom-0 right-0 p-2 bg-[#6b38d4] text-white rounded-full hover:bg-[#8455ef] hover:scale-105 transition-all shadow-md border-2 border-white"
               title="Edit Profile"
             >
               <Camera className="h-3.5 w-3.5" />
@@ -69,7 +69,7 @@ export default function ProfileDetails({ user, isOwner, isMocked }: ProfileDetai
         {isOwner && (
           <button
             onClick={() => setIsModalOpen(true)}
-            className="w-full py-2 border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/10 rounded-xl text-xs font-semibold text-slate-700 hover:text-indigo-650 transition-all flex items-center justify-center gap-1.5 shadow-2xs"
+            className="w-full py-2 border border-slate-200 hover:border-[#6b38d4]/30 hover:bg-[#6b38d4]/5 rounded-xl text-xs font-semibold text-slate-700 hover:text-[#6b38d4] transition-all flex items-center justify-center gap-1.5 shadow-2xs"
           >
             <Settings className="h-3.5 w-3.5 text-slate-400" /> Edit Profile Card
           </button>
@@ -83,7 +83,7 @@ export default function ProfileDetails({ user, isOwner, isMocked }: ProfileDetai
           <span className={`text-[10px] font-bold uppercase border px-2 py-0.5 rounded-md ${
             isMocked 
               ? "bg-amber-50 text-amber-700 border-amber-100" 
-              : "bg-indigo-50 text-indigo-700 border-indigo-100"
+              : "bg-[#6b38d4]/10 text-[#6b38d4] border-[#6b38d4]/20"
           }`}>
             {isMocked ? "Sandbox" : "Developer"}
           </span>

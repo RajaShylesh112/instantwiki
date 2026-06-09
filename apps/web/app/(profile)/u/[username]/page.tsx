@@ -117,7 +117,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
               
               {(isOwner || isMocked) && (
                 <Link href="/create-wiki">
-                  <Button className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold h-8 px-3 flex items-center gap-1.5 rounded-md shadow-xs">
+                  <Button className="bg-[#6b38d4] hover:bg-[#8455ef] text-white text-xs font-semibold h-8 px-3 flex items-center gap-1.5 rounded-md shadow-xs">
                     <Plus className="h-4 w-4" /> Create Wiki
                   </Button>
                 </Link>
@@ -133,13 +133,13 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                 visibleWikis.map((wiki) => (
                   <div
                     key={wiki.id}
-                    className="group p-5 bg-white border border-slate-200 rounded-xl hover:border-indigo-300 hover:shadow-md transition-all flex flex-col justify-between gap-4 shadow-2xs"
+                    className="group p-5 bg-white border border-slate-200 rounded-xl hover:border-[#6b38d4]/30 hover:shadow-md transition-all flex flex-col justify-between gap-4 shadow-2xs"
                   >
                     <div className="space-y-2">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <Link
                           href={`/u/${dbUser.username}/${wiki.slug}`}
-                          className="text-base font-bold text-slate-900 hover:text-indigo-600 transition-colors"
+                          className="text-base font-bold text-slate-900 hover:text-[#6b38d4] transition-colors"
                         >
                           {wiki.title}
                         </Link>
@@ -171,7 +171,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
                       <Link
                         href={`/u/${dbUser.username}/${wiki.slug}`}
-                        className="text-indigo-650 font-bold flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform"
+                        className="text-[#6b38d4] font-bold flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform"
                       >
                         Enter Workspace <BookOpen className="h-3.5 w-3.5" />
                       </Link>

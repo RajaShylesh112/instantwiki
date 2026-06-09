@@ -85,7 +85,7 @@ export default function ProfileEditor({ user, onClose }: ProfileEditorProps) {
               placeholder="e.g. raja_dev"
               value={usernameInput}
               onChange={(e) => setUsernameInput(e.target.value)}
-              className="w-full px-3.5 py-2.5 text-sm text-slate-900 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-mono transition-all hover:border-slate-350"
+              className="w-full px-3.5 py-2.5 text-sm text-slate-900 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#6b38d4]/20 focus:border-[#6b38d4] font-mono transition-all hover:border-slate-350"
               disabled={isPending || success}
             />
           </div>
@@ -102,7 +102,7 @@ export default function ProfileEditor({ user, onClose }: ProfileEditorProps) {
               placeholder="https://example.com/avatar.jpg"
               value={imageInput}
               onChange={(e) => setImageInput(e.target.value)}
-              className="w-full px-3.5 py-2.5 text-sm text-slate-900 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-mono transition-all hover:border-slate-350"
+              className="w-full px-3.5 py-2.5 text-sm text-slate-900 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#6b38d4]/20 focus:border-[#6b38d4] font-mono transition-all hover:border-slate-350"
               disabled={isPending || success}
             />
           </div>
@@ -139,7 +139,7 @@ export default function ProfileEditor({ user, onClose }: ProfileEditorProps) {
         <Button
           type="submit"
           disabled={isPending || success}
-          className="px-5 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl flex items-center gap-1.5 shadow-sm"
+          className="px-5 py-2 text-xs font-semibold bg-[#6b38d4] hover:bg-[#8455ef] text-white rounded-xl flex items-center gap-1.5 shadow-sm"
         >
           {isPending ? (
             <>

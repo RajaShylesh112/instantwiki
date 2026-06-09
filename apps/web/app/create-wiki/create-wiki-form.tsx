@@ -13,7 +13,6 @@ import {
   Lock, 
   EyeOff, 
   FolderPlus, 
-  HelpCircle,
   AlertCircle,
   Check
 } from "lucide-react"
@@ -137,7 +136,7 @@ export default function CreateWikiForm({ username }: CreateWikiFormProps) {
       {/* Left Column: Form Controls (Col-span 7) */}
       <form onSubmit={handleSubmit} className="lg:col-span-7 space-y-6 bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
         <div className="border-b border-slate-100 pb-3 flex items-center gap-2">
-          <FolderPlus className="h-5 w-5 text-indigo-600" />
+          <FolderPlus className="h-5 w-5 text-[#6b38d4]" />
           <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider font-mono">
             New Wiki Details
           </h2>
@@ -162,7 +161,7 @@ export default function CreateWikiForm({ username }: CreateWikiFormProps) {
               placeholder="e.g. Machine Learning Atlas"
               value={title}
               onChange={(e) => handleTitleChange(e.target.value)}
-              className="border-slate-200 bg-white text-slate-900 focus:border-indigo-500 focus:ring-indigo-500/50 text-sm"
+              className="border-slate-200 bg-white text-slate-900 focus:border-[#6b38d4] focus:ring-[#6b38d4]/50 text-sm"
               disabled={isPending}
             />
           </div>
@@ -179,7 +178,7 @@ export default function CreateWikiForm({ username }: CreateWikiFormProps) {
               placeholder="e.g. ml-atlas"
               value={slug}
               onChange={(e) => setSlug(e.target.value.toLowerCase())}
-              className="border-slate-200 bg-white text-slate-900 font-mono text-xs focus:border-indigo-500 focus:ring-indigo-500/50"
+              className="border-slate-200 bg-white text-slate-900 font-mono text-xs focus:border-[#6b38d4] focus:ring-[#6b38d4]/50"
               disabled={isPending}
             />
           </div>
@@ -193,7 +192,7 @@ export default function CreateWikiForm({ username }: CreateWikiFormProps) {
               placeholder="Summarize the core topics and purpose of this wiki database..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="border-slate-200 bg-white text-slate-900 font-serif text-sm focus:border-indigo-500 focus:ring-indigo-500/50 min-h-[100px]"
+              className="border-slate-200 bg-white text-slate-900 font-serif text-sm focus:border-[#6b38d4] focus:ring-[#6b38d4]/50 min-h-[100px]"
               disabled={isPending}
             />
           </div>
@@ -211,13 +210,13 @@ export default function CreateWikiForm({ username }: CreateWikiFormProps) {
                 onClick={() => setVisibility("PUBLIC")}
                 className={`p-3 border rounded-lg flex flex-col text-left gap-1.5 transition-all ${
                   visibility === "PUBLIC"
-                    ? "border-indigo-600 bg-indigo-50/20 text-slate-800"
+                    ? "border-[#6b38d4] bg-[#6b38d4]/10 text-slate-800"
                     : "border-slate-200 bg-slate-50 hover:bg-slate-100/30 text-slate-500"
                 }`}
                 disabled={isPending}
               >
                 <span className="flex items-center gap-1 text-xs font-bold font-mono">
-                  <Globe className={`h-4 w-4 ${visibility === "PUBLIC" ? "text-blue-600" : "text-slate-400"}`} />
+                  <Globe className={`h-4 w-4 ${visibility === "PUBLIC" ? "text-[#006b5e]" : "text-slate-400"}`} />
                   Public
                 </span>
                 <span className="text-[10px] leading-relaxed">Anyone can view this wiki index.</span>
@@ -229,13 +228,13 @@ export default function CreateWikiForm({ username }: CreateWikiFormProps) {
                 onClick={() => setVisibility("UNLISTED")}
                 className={`p-3 border rounded-lg flex flex-col text-left gap-1.5 transition-all ${
                   visibility === "UNLISTED"
-                    ? "border-indigo-600 bg-indigo-50/20 text-slate-800"
+                    ? "border-[#6b38d4] bg-[#6b38d4]/10 text-slate-800"
                     : "border-slate-200 bg-slate-50 hover:bg-slate-100/30 text-slate-500"
                 }`}
                 disabled={isPending}
               >
                 <span className="flex items-center gap-1 text-xs font-bold font-mono">
-                  <EyeOff className={`h-4 w-4 ${visibility === "UNLISTED" ? "text-slate-505" : "text-slate-400"}`} />
+                  <EyeOff className={`h-4 w-4 ${visibility === "UNLISTED" ? "text-slate-550" : "text-slate-400"}`} />
                   Unlisted
                 </span>
                 <span className="text-[10px] leading-relaxed">Only people with the link can view it.</span>
@@ -247,7 +246,7 @@ export default function CreateWikiForm({ username }: CreateWikiFormProps) {
                 onClick={() => setVisibility("PRIVATE")}
                 className={`p-3 border rounded-lg flex flex-col text-left gap-1.5 transition-all ${
                   visibility === "PRIVATE"
-                    ? "border-indigo-600 bg-indigo-50/20 text-slate-800"
+                    ? "border-[#6b38d4] bg-[#6b38d4]/10 text-slate-800"
                     : "border-slate-200 bg-slate-50 hover:bg-slate-100/30 text-slate-500"
                 }`}
                 disabled={isPending}
@@ -275,7 +274,7 @@ export default function CreateWikiForm({ username }: CreateWikiFormProps) {
           <Button
             type="submit"
             disabled={isPending}
-            className="px-5 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-md flex items-center gap-1.5"
+            className="px-5 py-2 text-xs font-semibold bg-[#6b38d4] hover:bg-[#8455ef] text-white rounded-md flex items-center gap-1.5 shadow-sm"
           >
             {isPending ? (
               <>
@@ -289,15 +288,15 @@ export default function CreateWikiForm({ username }: CreateWikiFormProps) {
       </form>
 
       {/* Right Column: AI Assistant (Col-span 5) */}
-      <div className="lg:col-span-5 bg-gradient-to-br from-indigo-950 to-slate-900 text-slate-100 border border-slate-800 rounded-xl p-6 shadow-md space-y-6">
-        <div className="flex items-center justify-between border-b border-slate-850 pb-3">
+      <div className="lg:col-span-5 bg-gradient-to-br from-[#1a1c1b] to-slate-900 text-slate-105 border border-slate-800 rounded-xl p-6 shadow-md space-y-6">
+        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
           <div className="flex items-center gap-2">
-            <Sparkles className="h-4.5 w-4.5 text-indigo-400" />
-            <h2 className="text-xs font-bold uppercase tracking-wider font-mono">
+            <Sparkles className="h-4.5 w-4.5 text-[#6b38d4]" />
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-200 font-mono">
               DeepSeek AI Assistant
             </h2>
           </div>
-          <span className="text-[9px] font-mono bg-indigo-900/40 border border-indigo-800 text-indigo-300 px-2 py-0.5 rounded uppercase">
+          <span className="text-[9px] font-mono bg-[#6b38d4]/20 border border-[#6b38d4]/30 text-indigo-300 px-2 py-0.5 rounded uppercase">
             Autopilot
           </span>
         </div>
@@ -312,7 +311,7 @@ export default function CreateWikiForm({ username }: CreateWikiFormProps) {
               placeholder="e.g. Machine Learning"
               value={topicPrompt}
               onChange={(e) => setTopicPrompt(e.target.value)}
-              className="w-full px-3 py-2 text-xs text-slate-100 bg-slate-950/60 border border-slate-800 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 font-sans"
+              className="w-full px-3 py-2 text-xs text-slate-100 bg-slate-950/60 border border-slate-800 rounded-md focus:outline-none focus:ring-1 focus:ring-[#6b38d4] font-sans"
               disabled={isAiLoading}
             />
           </div>
@@ -325,7 +324,7 @@ export default function CreateWikiForm({ username }: CreateWikiFormProps) {
               placeholder="e.g. For computer science students, focusing on neural network architectures"
               value={scopePrompt}
               onChange={(e) => setScopePrompt(e.target.value)}
-              className="w-full px-3 py-2 text-xs text-slate-100 bg-slate-950/60 border border-slate-800 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 font-sans min-h-[60px]"
+              className="w-full px-3 py-2 text-xs text-slate-100 bg-slate-950/60 border border-slate-800 rounded-md focus:outline-none focus:ring-1 focus:ring-[#6b38d4] font-sans min-h-[60px]"
               disabled={isAiLoading}
             />
           </div>
@@ -333,7 +332,7 @@ export default function CreateWikiForm({ username }: CreateWikiFormProps) {
           <button
             type="button"
             onClick={handleGenerateIdeas}
-            className="w-full py-2 bg-indigo-650 hover:bg-indigo-600 transition-colors rounded-md text-xs font-semibold text-white flex items-center justify-center gap-1.5"
+            className="w-full py-2 bg-[#6b38d4] hover:bg-[#8455ef] transition-colors rounded-md text-xs font-semibold text-white flex items-center justify-center gap-1.5 shadow-sm"
             disabled={isAiLoading}
           >
             {isAiLoading ? (
@@ -359,7 +358,7 @@ export default function CreateWikiForm({ username }: CreateWikiFormProps) {
           <div className="space-y-3.5 pt-2 border-t border-slate-850">
             <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono">
               <span>Suggestions List</span>
-              <span className="text-indigo-400 font-bold">{aiProviderMsg}</span>
+              <span className="text-[#6b38d4] font-bold">{aiProviderMsg}</span>
             </div>
 
             <div className="space-y-3">
@@ -367,10 +366,10 @@ export default function CreateWikiForm({ username }: CreateWikiFormProps) {
                 <div
                   key={idx}
                   onClick={() => handleSelectSuggestion(sug)}
-                  className="p-3.5 bg-slate-950/40 hover:bg-indigo-950/30 border border-slate-800 hover:border-indigo-850 rounded-lg cursor-pointer transition-all flex flex-col gap-1.5 group"
+                  className="p-3.5 bg-slate-950/40 hover:bg-[#6b38d4]/10 border border-slate-800 hover:border-[#6b38d4]/30 rounded-lg cursor-pointer transition-all flex flex-col gap-1.5 group"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-200 group-hover:text-indigo-300 transition-colors">
+                    <span className="text-xs font-bold text-slate-200 group-hover:text-[#6b38d4] transition-colors">
                       {sug.title}
                     </span>
                     <span className="text-[9px] font-mono text-slate-500 bg-slate-900 border border-slate-800 px-1.5 rounded">

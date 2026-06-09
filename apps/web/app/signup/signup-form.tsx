@@ -60,7 +60,7 @@ export default function SignupForm() {
             required
             disabled={loading}
             placeholder="e.g. alice_dev"
-            className="border-slate-200 bg-white text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-blue-500/50"
+            className="border-slate-200 bg-white text-slate-900 placeholder-slate-400 focus:border-[#6b38d4] focus:ring-[#6b38d4]/50"
           />
         </div>
 
@@ -74,7 +74,7 @@ export default function SignupForm() {
             required
             disabled={loading}
             placeholder="you@example.com"
-            className="border-slate-200 bg-white text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-blue-500/50"
+            className="border-slate-200 bg-white text-slate-900 placeholder-slate-400 focus:border-[#6b38d4] focus:ring-[#6b38d4]/50"
           />
         </div>
 
@@ -88,14 +88,14 @@ export default function SignupForm() {
             required
             disabled={loading}
             placeholder="••••••••"
-            className="border-slate-200 bg-white text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-blue-500/50"
+            className="border-slate-200 bg-white text-slate-900 placeholder-slate-400 focus:border-[#6b38d4] focus:ring-[#6b38d4]/50"
           />
         </div>
 
         <Button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 text-white py-5 font-semibold text-xs transition-colors hover:bg-blue-700 shadow-sm"
+          className="w-full bg-[#6b38d4] text-white py-5 font-semibold text-xs transition-colors hover:bg-[#8455ef] shadow-sm"
         >
           {loading ? "Creating account..." : "Sign Up"}
         </Button>
@@ -103,7 +103,7 @@ export default function SignupForm() {
 
       <div className="text-center text-xs text-slate-500">
         Already have an account?{" "}
-        <Link href="/signin" className="font-semibold text-blue-600 hover:text-blue-700 hover:underline">
+        <Link href="/signin" className="font-semibold text-[#6b38d4] hover:text-[#8455ef] hover:underline">
           Sign In
         </Link>
       </div>

@@ -85,7 +85,7 @@ export default async function WikiLayout({ children, params }: WikiLayoutProps) 
       <aside className="w-60 border-r border-slate-200 bg-slate-50 flex flex-col justify-between shrink-0 h-screen sticky top-0">
         <div className="p-5 space-y-6">
           {/* Logo Branding */}
-          <Link href="/" className="font-mono font-bold text-slate-900 hover:text-indigo-600 transition-colors text-base block">
+          <Link href="/" className="font-mono font-bold text-slate-900 hover:text-[#6b38d4] transition-colors text-base block">
             instant.wiki
           </Link>
 
@@ -105,14 +105,14 @@ export default async function WikiLayout({ children, params }: WikiLayoutProps) 
             @{username}
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-indigo-600"></span>
+            <span className="h-2 w-2 rounded-full bg-[#6b38d4]"></span>
             <span>Free Plan</span>
           </div>
         </div>
       </aside>
 
       {/* Main Content Pane */}
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto bg-[#FAFAF8]">
         {children}
       </main>
     </div>

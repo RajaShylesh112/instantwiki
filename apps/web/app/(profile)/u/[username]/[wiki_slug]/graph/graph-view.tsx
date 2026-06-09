@@ -103,7 +103,7 @@ export default function GraphView({ username, wikiSlug }: GraphViewProps) {
   }
 
   return (
-    <div className="relative h-[calc(100vh-60px)] md:h-screen w-full bg-slate-50 overflow-hidden font-sans select-none flex flex-col">
+    <div className="relative h-[calc(100vh-60px)] md:h-screen w-full bg-transparent overflow-hidden font-sans select-none flex flex-col">
       {/* Floating Header & Search Bar (graph-controls) */}
       <header className="absolute top-5 left-5 right-5 z-20 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pointer-events-none">
         
@@ -193,7 +193,7 @@ export default function GraphView({ username, wikiSlug }: GraphViewProps) {
         <svg
           ref={svgRef}
           className="w-full h-full"
-          style={{ background: "#F8FAFC" }}
+          style={{ background: "#FAFAF8" }}
         >
           <g transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
             
@@ -206,7 +206,7 @@ export default function GraphView({ username, wikiSlug }: GraphViewProps) {
               const isSelectedPath =
                 selectedNodeId === link.source || selectedNodeId === link.target
               const opacity = selectedNodeId ? (isSelectedPath ? 1.0 : 0.15) : 0.6
-              const stroke = isSelectedPath ? "#6366F1" : "#CBD5E1"
+              const stroke = isSelectedPath ? "#6b38d4" : "#CBD5E1"
               const strokeWidth = isSelectedPath ? 2.0 : 1.2
 
               return (
@@ -238,11 +238,11 @@ export default function GraphView({ username, wikiSlug }: GraphViewProps) {
               let fill = "#FFFFFF"
               let stroke = "#94A3B8"
               if (node.group === 1) {
-                fill = isSelected ? "#EEF2FF" : "#F8FAFC"
-                stroke = "#4F46E5"
+                fill = isSelected ? "#f6f2ff" : "#F8FAFC"
+                stroke = "#6b38d4"
               } else if (node.group === 2) {
-                fill = isSelected ? "#ECFDF5" : "#F8FAFC"
-                stroke = "#059669"
+                fill = isSelected ? "#f0faf7" : "#F8FAFC"
+                stroke = "#006b5e"
               } else if (node.group === 3) {
                 fill = isSelected ? "#FFF7ED" : "#F8FAFC"
                 stroke = "#EA580C"
@@ -300,7 +300,7 @@ export default function GraphView({ username, wikiSlug }: GraphViewProps) {
           >
             <div className="flex items-start justify-between border-b border-slate-100 pb-2">
               <div className="flex items-center gap-2">
-                <Network className="h-4.5 w-4.5 text-indigo-600" />
+                <Network className="h-4.5 w-4.5 text-[#6b38d4]" />
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono">
                   Concept Focused
                 </h3>
@@ -339,7 +339,7 @@ export default function GraphView({ username, wikiSlug }: GraphViewProps) {
                 <Link
                   href={`/u/${username}/${wikiSlug}/${selectedNode.slug}`}
                   id="graph-popup-btn-open"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 rounded-md transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-[#6b38d4] text-white hover:bg-[#8455ef] rounded-md transition-colors"
                 >
                   <BookOpen className="h-3.5 w-3.5" /> Open Article
                 </Link>

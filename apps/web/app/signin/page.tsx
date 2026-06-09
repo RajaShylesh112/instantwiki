@@ -37,7 +37,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
   }
 
   return (
-    <div className="relative flex min-h-[75vh] flex-col items-center justify-center bg-slate-50/30 px-4 py-12">
+    <div className="relative flex min-h-[75vh] flex-col items-center justify-center bg-[#FAFAF8] px-4 py-12">
       <div className="w-full max-w-md bg-white rounded-xl border border-slate-200 p-8 shadow-sm space-y-6">
         <div className="flex flex-col items-center space-y-3 text-center">
           <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">
@@ -70,18 +70,18 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
       </div>
 
       {/* Recently Published Wikis list below sign in */}
-      <div className="w-full max-w-md mt-10 space-y-3 text-center border-t border-slate-200/80 pt-8">
-        <h4 className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">
+      <div className="w-full max-w-md mt-10 space-y-3 text-center border-t border-slate-200/85 pt-8">
+        <h4 className="text-[10px] font-bold uppercase tracking-wider text-slate-450 font-mono">
           Recently Published Wikis
         </h4>
         <div className="flex flex-col items-center gap-2 text-xs">
-          <Link href="/" className="text-blue-600 hover:underline font-medium">
+          <Link href="/" className="text-[#6b38d4] hover:underline font-medium">
             Machine Learning Atlas
           </Link>
-          <Link href="/" className="text-blue-600 hover:underline font-medium">
+          <Link href="/" className="text-[#6b38d4] hover:underline font-medium">
             Startup Handbook
           </Link>
-          <Link href="/" className="text-blue-600 hover:underline font-medium">
+          <Link href="/" className="text-[#6b38d4] hover:underline font-medium">
             Travel Knowledge Base
           </Link>
         </div>

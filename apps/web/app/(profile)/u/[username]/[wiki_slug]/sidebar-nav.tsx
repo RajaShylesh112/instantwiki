@@ -59,11 +59,11 @@ export default function SidebarNav({ username, wikiSlug, isOwner }: SidebarNavPr
             href={item.href}
             className={`flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
               isActive
-                ? "bg-slate-200/60 text-slate-900"
+                ? "bg-[#6b38d4]/10 text-[#6b38d4]"
                 : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
             }`}
           >
-            <Icon className={`h-4 w-4 shrink-0 ${isActive ? "text-indigo-600" : "text-slate-400"}`} />
+            <Icon className={`h-4 w-4 shrink-0 ${isActive ? "text-[#6b38d4]" : "text-slate-400"}`} />
             {item.name}
           </Link>
         )

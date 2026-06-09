@@ -15,7 +15,7 @@ export default async function CreateWikiPage() {
   const username = session.user.username || "sandbox"
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAF9F6]">
+    <div className="min-h-screen flex flex-col bg-[#FAFAF8]">
       {/* Navigation Header */}
       <Header />
 
@@ -25,7 +25,7 @@ export default async function CreateWikiPage() {
         {/* Breadcrumbs / Header Info */}
         <div className="space-y-1">
           <div className="flex items-center gap-1.5 text-xs font-mono text-slate-400">
-            <Link href={`/u/${username}`} className="hover:text-indigo-650 transition-colors">
+            <Link href={`/u/${username}`} className="hover:text-[#6b38d4] transition-colors">
               @{username}
             </Link>
             <ChevronRight className="h-3.5 w-3.5" />

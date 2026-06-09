@@ -10,7 +10,7 @@ export default async function SignupPage() {
   }
 
   return (
-    <div className="relative flex min-h-[80vh] flex-col items-center justify-center bg-slate-50/30 px-4 py-12">
+    <div className="relative flex min-h-[80vh] flex-col items-center justify-center bg-[#FAFAF8] px-4 py-12">
       <SignupForm />
 
       <div className="text-center text-xs text-slate-400 border-t border-slate-100 pt-4 mt-6 w-full max-w-md">

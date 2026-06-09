@@ -80,7 +80,7 @@ export default function ArticleView({ username, wikiSlug, article }: ArticleView
             <sup
               key={`${keyPrefix}-${subIdx}`}
               onClick={() => handleCitationClick(citationId)}
-              className="cursor-pointer font-bold font-mono text-indigo-650 hover:bg-indigo-100 rounded px-0.5 select-none transition-colors"
+              className="cursor-pointer font-bold font-mono text-[#6b38d4] hover:bg-[#6b38d4]/10 rounded px-0.5 select-none transition-colors"
               title="Click to trace source"
             >
               {subChunk}
@@ -105,7 +105,7 @@ export default function ArticleView({ username, wikiSlug, article }: ArticleView
         <Link
           key={`link-${matchIndex}`}
           href={`/u/${username}/${wikiSlug}/${linkSlug}`}
-          className="text-indigo-650 font-semibold hover:underline"
+          className="text-[#6b38d4] font-semibold hover:underline"
         >
           {linkText}
         </Link>
@@ -125,11 +125,11 @@ export default function ArticleView({ username, wikiSlug, article }: ArticleView
   const lines = article.body.split("\n")
 
   return (
-    <div className="relative min-h-screen font-sans bg-white flex flex-col">
+    <div className="relative min-h-screen font-sans bg-transparent flex flex-col">
       <div className="flex-1 py-8 max-w-4xl mx-auto px-6 w-full">
         {/* Breadcrumbs */}
         <div className="flex items-center gap-2 text-xs font-mono text-slate-500 mb-6">
-          <Link href={`/u/${username}/${wikiSlug}`} className="hover:text-indigo-600 transition-colors">
+          <Link href={`/u/${username}/${wikiSlug}`} className="hover:text-[#6b38d4] transition-colors">
             {wikiSlug}
           </Link>
           <span>/</span>
@@ -203,15 +203,15 @@ export default function ArticleView({ username, wikiSlug, article }: ArticleView
                     key={citId}
                     id={`article-source-item-${citId}`}
                     onClick={() => handleCitationClick(citId)}
-                    className="group flex items-start gap-3 p-3 rounded-lg border border-slate-150 bg-slate-50/50 hover:bg-white hover:border-slate-350 cursor-pointer transition-all"
+                    className="group flex items-start gap-3 p-3 rounded-lg border border-slate-150 bg-slate-50/50 hover:bg-transparent hover:border-slate-350 cursor-pointer transition-all"
                   >
-                    <span className="font-mono text-xs font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 rounded px-1.5 py-0.5 shrink-0 select-none">
+                    <span className="font-mono text-xs font-bold text-[#6b38d4] bg-[#6b38d4]/10 border border-[#6b38d4]/20 rounded px-1.5 py-0.5 shrink-0 select-none">
                       [{citId}]
                     </span>
                     <div className="space-y-1">
-                      <div className="text-xs font-bold text-slate-900 flex items-center gap-1 group-hover:text-indigo-650 transition-colors">
+                      <div className="text-xs font-bold text-slate-900 flex items-center gap-1 group-hover:text-[#6b38d4] transition-colors">
                         {citation.sourceName} (Page {citation.page})
-                        <ExternalLink className="h-3 w-3 text-slate-450 group-hover:text-indigo-500" />
+                        <ExternalLink className="h-3 w-3 text-slate-455 group-hover:text-[#6b38d4]" />
                       </div>
                       <p className="text-[11px] text-slate-500 leading-relaxed font-mono line-clamp-1 italic">
                         "...{citation.highlight}..."
@@ -244,7 +244,7 @@ export default function ArticleView({ username, wikiSlug, article }: ArticleView
             {/* Header */}
             <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
               <div className="flex items-center gap-2">
-                <Database className="h-4.5 w-4.5 text-indigo-600" />
+                <Database className="h-4.5 w-4.5 text-[#6b38d4]" />
                 <span className="font-mono text-xs font-bold text-slate-800">Citation Source</span>
               </div>
               <button

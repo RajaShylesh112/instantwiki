@@ -132,7 +132,7 @@ export default function SourcesView({ username, wikiSlug }: SourcesViewProps) {
         {!isUploaderOpen && (
           <button
             onClick={() => setIsUploaderOpen(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-md transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-[#6b38d4] hover:bg-[#8455ef] text-white rounded-md transition-colors"
           >
             <Plus className="h-4 w-4" /> Add Knowledge Source
           </button>
@@ -165,7 +165,7 @@ export default function SourcesView({ username, wikiSlug }: SourcesViewProps) {
               onClick={() => fileInputRef.current?.click()}
               className={`border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center text-center cursor-pointer min-h-[140px] transition-all ${
                 isDragOver
-                  ? "border-indigo-600 bg-slate-100/50"
+                  ? "border-[#6b38d4] bg-slate-100/50"
                   : "border-slate-200 bg-slate-50 hover:bg-slate-100/30"
               }`}
             >
@@ -180,7 +180,7 @@ export default function SourcesView({ username, wikiSlug }: SourcesViewProps) {
               
               {isUploading ? (
                 <div className="space-y-2 flex flex-col items-center">
-                  <Loader2 className="h-8 w-8 text-indigo-600 animate-spin" />
+                  <Loader2 className="h-8 w-8 text-[#6b38d4] animate-spin" />
                   <p className="text-xs text-slate-500 font-mono">Uploading and parsing PDF...</p>
                 </div>
               ) : uploadSuccess ? (
@@ -192,7 +192,7 @@ export default function SourcesView({ username, wikiSlug }: SourcesViewProps) {
                 <div className="space-y-2 flex flex-col items-center">
                   <UploadCloud className="h-8 w-8 text-slate-400" />
                   <p className="text-xs font-semibold text-slate-800">
-                    Drag and drop file here or <span className="text-indigo-650">click to browse</span>
+                    Drag and drop file here or <span className="text-[#6b38d4]">click to browse</span>
                   </p>
                   <p className="text-[10px] text-slate-400 font-mono">
                     Supports PDF, TXT, or MD up to 10MB
@@ -218,7 +218,7 @@ export default function SourcesView({ username, wikiSlug }: SourcesViewProps) {
                     placeholder="https://example.com/article"
                     value={urlInput}
                     onChange={(e) => setUrlInput(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 text-xs text-slate-900 bg-white border border-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono"
+                    className="w-full pl-9 pr-3 py-2 text-xs text-slate-900 bg-white border border-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#6b38d4] font-mono"
                     disabled={isUploading}
                   />
                 </div>
@@ -283,7 +283,7 @@ export default function SourcesView({ username, wikiSlug }: SourcesViewProps) {
                 <tr key={src.id} className="hover:bg-slate-50/50 transition-colors">
                   <td className="px-5 py-3.5" id="sources-col-name">
                     <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-indigo-500 shrink-0" />
+                      <FileText className="h-4 w-4 text-[#6b38d4] shrink-0" />
                       <span className="text-xs sm:text-sm font-semibold text-slate-800 truncate max-w-xs sm:max-w-md">
                         {src.name}
                       </span>

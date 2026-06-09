@@ -117,13 +117,13 @@ export default function SignInForm({ callbackUrl }: SignInFormProps) {
           <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 font-mono">
             Username or Email
           </label>
-          <Input
+           <Input
             name="usernameOrEmail"
             type="text"
             required
             disabled={loading}
             placeholder="e.g. raja"
-            className="border-slate-200 bg-white text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-blue-500/50"
+            className="border-slate-200 bg-white text-slate-900 placeholder-slate-400 focus:border-[#6b38d4] focus:ring-[#6b38d4]/50"
           />
         </div>
 
@@ -137,14 +137,14 @@ export default function SignInForm({ callbackUrl }: SignInFormProps) {
             required
             disabled={loading}
             placeholder="••••••••"
-            className="border-slate-200 bg-white text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-blue-500/50"
+            className="border-slate-200 bg-white text-slate-900 placeholder-slate-400 focus:border-[#6b38d4] focus:ring-[#6b38d4]/50"
           />
         </div>
 
         <Button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 text-white py-5 font-semibold text-xs transition-colors hover:bg-blue-700 shadow-sm"
+          className="w-full bg-[#6b38d4] text-white py-5 font-semibold text-xs transition-colors hover:bg-[#8455ef] shadow-sm"
         >
           {loading ? "Signing in..." : "Sign In with Password"}
         </Button>
@@ -152,7 +152,7 @@ export default function SignInForm({ callbackUrl }: SignInFormProps) {
 
       <div className="text-center text-xs text-slate-500">
         Don&apos;t have an account?{" "}
-        <Link href="/signup" className="font-semibold text-blue-600 hover:text-blue-700 hover:underline">
+        <Link href="/signup" className="font-semibold text-[#6b38d4] hover:text-[#8455ef] hover:underline">
           Sign Up
         </Link>
       </div>

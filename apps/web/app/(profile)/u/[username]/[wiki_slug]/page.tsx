@@ -143,7 +143,7 @@ export default async function WikiPage({ params }: WikiPageProps) {
                 <span>From InstantWiki, the structured knowledge hub</span>
                 <span>•</span>
                 <span className="flex items-center gap-1">
-                  {wiki.visibility === "PUBLIC" && <Globe className="h-3.5 w-3.5 text-blue-600" />}
+                  {wiki.visibility === "PUBLIC" && <Globe className="h-3.5 w-3.5 text-[#006b5e]" />}
                   {wiki.visibility === "UNLISTED" && <EyeOff className="h-3.5 w-3.5 text-slate-400" />}
                   {wiki.visibility === "PRIVATE" && <Lock className="h-3.5 w-3.5 text-red-500" />}
                   <span className="capitalize">{wiki.visibility.toLowerCase()} Namespace</span>
@@ -170,7 +170,7 @@ export default async function WikiPage({ params }: WikiPageProps) {
           {/* Overview Card */}
           <div className="rounded-lg border border-slate-150 bg-slate-50/50 p-5 space-y-3">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-450 font-mono">
-              <Sparkles className="h-3.5 w-3.5 text-indigo-500" />
+              <Sparkles className="h-3.5 w-3.5 text-[#6b38d4]" />
               AI Overview Summary
             </div>
             <p className="text-base text-slate-700 leading-relaxed font-serif pl-3 border-l-2 border-slate-300 italic" id="home-overview-text">
@@ -183,7 +183,7 @@ export default async function WikiPage({ params }: WikiPageProps) {
             <div className="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono">
               Table of Contents
             </div>
-            <ul className="space-y-2 text-xs font-mono text-blue-600">
+            <ul className="space-y-2 text-xs font-mono text-[#6b38d4]">
               <li>
                 <a href="#introduction" className="hover:underline">
                   1. Introduction
@@ -220,7 +220,7 @@ export default async function WikiPage({ params }: WikiPageProps) {
               </h2>
               {(isOwner || isMocked) && (
                 <Link href={`/u/${username}/${wiki_slug}/sources`}>
-                  <Button variant="ghost" className="text-indigo-600 font-semibold text-xs border border-slate-150 hover:bg-slate-50 h-7 px-2.5 flex items-center gap-1">
+                  <Button variant="ghost" className="text-[#6b38d4] font-semibold text-xs border border-slate-150 hover:bg-slate-50 h-7 px-2.5 flex items-center gap-1">
                     <Plus className="h-3.5 w-3.5" /> Add Document
                   </Button>
                 </Link>
@@ -237,7 +237,7 @@ export default async function WikiPage({ params }: WikiPageProps) {
                   <div className="space-y-2">
                     <Link
                       href={`/u/${username}/${wiki_slug}/${article.slug}`}
-                      className="font-bold text-slate-955 hover:text-indigo-600 text-sm block transition-colors"
+                      className="font-bold text-slate-955 hover:text-[#6b38d4] text-sm block transition-colors"
                     >
                       {article.title}
                     </Link>
@@ -251,7 +251,7 @@ export default async function WikiPage({ params }: WikiPageProps) {
                     </span>
                     <Link
                       href={`/u/${username}/${wiki_slug}/${article.slug}`}
-                      className="text-xs text-indigo-600 font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform"
+                      className="text-xs text-[#6b38d4] font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform"
                     >
                       Read Article <ArrowRight className="h-3 w-3" />
                     </Link>
@@ -333,16 +333,16 @@ export default async function WikiPage({ params }: WikiPageProps) {
               <line x1="100" y1="90" x2="160" y2="130" stroke="#E2E8F0" strokeWidth="1.5" />
 
               {/* Core Node */}
-              <circle cx="100" cy="90" r="14" fill="#EEF2FF" stroke="#4F46E5" strokeWidth="1.5" />
-              <text x="100" y="93" textAnchor="middle" fontSize="6.5" fontWeight="bold" fill="#4338CA">Atlas</text>
+              <circle cx="100" cy="90" r="14" fill="#f6f2ff" stroke="#6b38d4" strokeWidth="1.5" />
+              <text x="100" y="93" textAnchor="middle" fontSize="6.5" fontWeight="bold" fill="#6b38d4">Atlas</text>
 
               {/* Ingestion Node */}
-              <circle cx="100" cy="30" r="12" fill="#ECFDF5" stroke="#059669" strokeWidth="1.5" />
-              <text x="100" y="33" textAnchor="middle" fontSize="6" fill="#047857">Ingest</text>
+              <circle cx="100" cy="30" r="12" fill="#f0faf7" stroke="#006b5e" strokeWidth="1.5" />
+              <text x="100" y="33" textAnchor="middle" fontSize="6" fill="#006b5e">Ingest</text>
 
               {/* Extract Node */}
-              <circle cx="40" cy="130" r="12" fill="#FAF5FF" stroke="#7C3AED" strokeWidth="1.5" />
-              <text x="40" y="133" textAnchor="middle" fontSize="6" fill="#6D28D9">Extract</text>
+              <circle cx="40" cy="130" r="12" fill="#f6f2ff" stroke="#6b38d4" strokeWidth="1.5" />
+              <text x="40" y="133" textAnchor="middle" fontSize="6" fill="#6b38d4">Extract</text>
 
               {/* Entity Node */}
               <circle cx="160" cy="130" r="12" fill="#FFF7ED" stroke="#EA580C" strokeWidth="1.5" />
@@ -353,7 +353,7 @@ export default async function WikiPage({ params }: WikiPageProps) {
             </div>
             
             <Link href={`/u/${username}/${wiki_slug}/graph`} className="block w-full">
-              <Button variant="ghost" className="w-full text-xs text-indigo-650 font-semibold border border-slate-150 hover:bg-slate-50 py-1.5 h-8">
+              <Button variant="ghost" className="w-full text-xs text-[#6b38d4] font-semibold border border-slate-150 hover:bg-slate-50 py-1.5 h-8">
                 View Full Interactive Graph
               </Button>
             </Link>
