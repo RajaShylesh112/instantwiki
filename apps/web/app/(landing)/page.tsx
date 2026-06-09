@@ -2,7 +2,7 @@ import Link from "next/link";
 import { auth } from "auth";
 import { redirect } from "next/navigation";
 import Header from "@/components/header";
-import { Sparkles, BookOpen, Network, Share2, Compass } from "lucide-react";
+import { Sparkles, FileText, Link as LinkIcon, Network, Compass } from "lucide-react";
 
 export default async function LandingPage() {
   // 1. Redirect to profile page if user is already authenticated
@@ -12,178 +12,185 @@ export default async function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#FAF9F6] via-white to-[#F4F3EF] text-slate-800">
+    <div className="min-h-screen flex flex-col bg-[#FAFAF8] text-[#1A1C1B]">
       {/* Navigation Header */}
       <Header />
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col items-center justify-center py-20 px-4 max-w-5xl mx-auto w-full gap-20">
-        {/* Hero Section */}
-        <section className="flex flex-col items-center text-center space-y-8 max-w-3xl">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-semibold tracking-wide animate-pulse">
-            <Sparkles className="h-3.5 w-3.5" />
-            Next-Generation Documentation
+      <main className="flex-1">
+        {/* Centered Hero Section */}
+        <section className="max-w-[1200px] mx-auto px-16 pt-24 pb-20 text-center space-y-8">
+          <div className="inline-block px-4 py-1 bg-[#6ef9e2]/25 text-[#007164] rounded-full text-xs font-bold font-mono tracking-wider">
+            REVOLUTIONIZE YOUR KNOWLEDGE
           </div>
 
-          <h1 className="text-5xl font-extrabold sm:text-6xl tracking-tight text-slate-900 leading-tight">
-            Turn documents into <br />
-            <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 bg-clip-text text-transparent">
-              structured knowledge webs
+          <h1 className="text-5xl font-extrabold sm:text-6xl tracking-tight text-[#1a1c1b] leading-tight">
+            Your documents already contain <br />
+            <span className="bg-gradient-to-r from-[#6b38d4] via-[#8455ef] to-[#6d3bd7] bg-clip-text text-transparent">
+              a website. We build it.
             </span>
           </h1>
 
-          <p className="text-lg text-slate-600 leading-relaxed max-w-2xl font-serif">
-            A minimalist, academic-style documentation platform inspired by Wikipedia and GitBook. 
-            Upload papers, reports, or articles, and instantly visualize their interconnected concepts.
+          <p className="max-w-2xl mx-auto text-[#494454] leading-relaxed text-lg font-serif">
+            Upload PDFs, notes, research papers, or documentation. Instant Wiki turns them into a searchable website with pages, links, and knowledge graphs.
           </p>
 
-          {/* Call-to-actions */}
-          <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
+          {/* Action buttons */}
+          <div className="flex justify-center gap-4 pt-4">
             <Link href="/signup">
-              <button className="bg-indigo-600 text-white hover:bg-indigo-700 shadow-md hover:shadow-lg transition-all font-semibold px-8 py-3 rounded-lg text-sm flex items-center gap-2 transform hover:-translate-y-0.5">
-                Get Started Free <Sparkles className="h-4 w-4" />
+              <button className="bg-[#6b38d4] text-white hover:brightness-110 shadow-sm transition-all font-semibold px-8 py-3 rounded-lg text-sm active:scale-95">
+                Create Wiki
               </button>
             </Link>
             <Link href="/signin">
-              <button className="bg-white text-slate-700 hover:text-slate-900 border border-slate-200 hover:border-slate-300 shadow-sm hover:shadow-md transition-all font-semibold px-8 py-3 rounded-lg text-sm">
+              <button className="bg-transparent border border-slate-200 hover:bg-slate-50 text-slate-700 transition-all font-semibold px-8 py-3 rounded-lg text-sm">
                 Sign In
               </button>
             </Link>
           </div>
         </section>
 
-        {/* Visual Showcase: Monospace SVG Knowledge Graph */}
-        <section className="w-full max-w-xl bg-white/70 backdrop-blur-md rounded-2xl border border-slate-200/80 p-8 shadow-xl relative overflow-hidden group hover:border-slate-300/80 transition-all duration-300">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-100 rounded-full blur-3xl -z-10 opacity-60 group-hover:opacity-100 transition-opacity" />
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-teal-100 rounded-full blur-3xl -z-10 opacity-60 group-hover:opacity-100 transition-opacity" />
-
-          <div className="text-center space-y-2 mb-8">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-600 font-mono">
-              Knowledge Map Visualization
-            </span>
-            <p className="text-xs text-slate-500 font-medium">
-              Autogenerated connections between ingested topics.
-            </p>
-          </div>
-          
-          <div className="relative flex justify-center items-center h-[200px] w-full">
-            <svg width="340" height="200" viewBox="0 0 340 200" className="mx-auto text-slate-800 font-mono select-none">
-              {/* Connection Lines */}
-              <path d="M 170 35 L 75 90" stroke="#818CF8" strokeWidth="1.5" strokeDasharray="3,3" />
-              <path d="M 170 35 L 265 90" stroke="#818CF8" strokeWidth="1.5" strokeDasharray="3,3" />
-              <path d="M 75 90 L 170 145" stroke="#14B8A6" strokeWidth="1.5" />
-              <path d="M 265 90 L 170 145" stroke="#14B8A6" strokeWidth="1.5" />
-              <path d="M 170 35 L 170 145" stroke="#6366F1" strokeWidth="2" />
-
-              {/* Node 1: Root - Statistics */}
-              <g className="cursor-pointer group/node">
-                <circle cx="170" cy="35" r="22" className="fill-white stroke-indigo-600 transition-colors" strokeWidth="2" />
-                <circle cx="170" cy="35" r="4" className="fill-indigo-600 animate-ping" />
-                <circle cx="170" cy="35" r="4" className="fill-indigo-600" />
-                <text x="170" y="70" textAnchor="middle" fill="#0F172A" fontSize="10" fontWeight="bold">Statistics</text>
-              </g>
-
-              {/* Node 2: Left - Data Science */}
-              <g className="cursor-pointer group/node">
-                <circle cx="75" cy="90" r="20" className="fill-white stroke-teal-500 transition-colors" strokeWidth="2" />
-                <circle cx="75" cy="90" r="3" className="fill-teal-500" />
-                <text x="75" y="125" textAnchor="middle" fill="#0F172A" fontSize="10" fontWeight="bold">Data Science</text>
-              </g>
-
-              {/* Node 3: Right - AI Parallels */}
-              <g className="cursor-pointer group/node">
-                <circle cx="265" cy="90" r="20" className="fill-white stroke-indigo-400 transition-colors" strokeWidth="2" />
-                <circle cx="265" cy="90" r="3" className="fill-indigo-400" />
-                <text x="265" y="125" textAnchor="middle" fill="#0F172A" fontSize="10" fontWeight="bold">Artificial Intelligence</text>
-              </g>
-
-              {/* Node 4: Bottom - Machine Learning */}
-              <g className="cursor-pointer group/node">
-                <circle cx="170" cy="145" r="24" className="fill-white stroke-indigo-700 transition-colors" strokeWidth="2.5" />
-                <circle cx="170" cy="145" r="5" className="fill-indigo-700" />
-                <text x="170" y="182" textAnchor="middle" fill="#0F172A" fontSize="10" fontWeight="bold">Machine Learning</text>
-              </g>
-            </svg>
+        {/* Transformation Showcase Section */}
+        <section className="max-w-[1200px] mx-auto px-16 py-16">
+          <div className="flex flex-col items-center">
+            <h2 className="text-3xl font-extrabold text-[#1a1c1b] tracking-tight mb-8">
+              The Transformation
+            </h2>
+            <div className="w-full rounded-2xl overflow-hidden shadow-lg border border-slate-200 bg-white p-6 md:p-8 hover:border-[#6b38d4]/15 transition-colors duration-300">
+              <img
+                src="/images/landing_page_image_1/screen.png"
+                alt="Transformation Illustration"
+                className="w-full h-auto object-cover rounded-xl border border-slate-100"
+              />
+            </div>
           </div>
         </section>
 
-        {/* Feature Grid */}
-        <section className="w-full grid md:grid-cols-3 gap-6 pt-6">
-          <div className="p-6 bg-white border border-slate-200 rounded-xl hover:border-indigo-200 transition-all flex flex-col gap-3 shadow-xs">
-            <div className="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
-              <Network className="h-5 w-5" />
+        {/* Interactive Wiki Preview (Dark Block) */}
+        <section className="bg-[#0B0D12] py-24 border-t border-slate-900 border-b">
+          <div className="max-w-[1200px] mx-auto px-16 text-center space-y-12">
+            <div className="space-y-3">
+              <h2 className="text-3xl font-extrabold text-white tracking-tight">
+                Interactive Wiki Preview
+              </h2>
+              <p className="text-slate-400 text-sm max-w-lg mx-auto font-serif">
+                Explore document links and entities through our dynamic force-directed workspace canvas.
+              </p>
             </div>
-            <h3 className="font-bold text-slate-900 text-sm">Interactive Graph View</h3>
-            <p className="text-xs text-slate-500 leading-relaxed font-serif">
-              Explore complex relationships between subjects dynamically using an interactive force-directed visual map.
-            </p>
+            
+            <div className="relative group max-w-4xl mx-auto">
+              <div className="absolute -inset-1 bg-gradient-to-r from-[#6b38d4] to-[#006b5e] rounded-2xl blur opacity-25 group-hover:opacity-35 transition duration-1000" />
+              <div className="relative bg-[#1A1C1B] rounded-2xl border border-white/10 overflow-hidden shadow-2xl">
+                <img
+                  src="/images/landing_page_image_2/screen.png"
+                  alt="Knowledge Graph Preview"
+                  className="w-full h-auto"
+                />
+              </div>
+            </div>
           </div>
+        </section>
 
-          <div className="p-6 bg-white border border-slate-200 rounded-xl hover:border-indigo-200 transition-all flex flex-col gap-3 shadow-xs">
-            <div className="w-10 h-10 rounded-lg bg-teal-50 text-teal-605 flex items-center justify-center">
-              <BookOpen className="h-5 w-5" />
+        {/* Features Bento Grid */}
+        <section className="max-w-[1200px] mx-auto px-16 py-24 space-y-12">
+          <h2 className="text-3xl font-extrabold text-[#1a1c1b] tracking-tight text-center">
+            What Instant Wiki Builds
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Feature 1: Pages */}
+            <div className="bg-white p-8 rounded-xl border border-slate-200 hover:border-[#6b38d4]/15 transition-all duration-300 flex flex-col gap-5 shadow-2xs">
+              <div className="w-12 h-12 bg-[#6b38d4]/10 rounded-lg flex items-center justify-center text-[#6b38d4]">
+                <FileText className="h-6 w-6" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="font-bold text-slate-900 text-base">Pages</h3>
+                <p className="text-sm text-[#494454] leading-relaxed font-serif">
+                  Generate structured pages from concepts automatically. Every document is parsed into a clean, readable web experience.
+                </p>
+              </div>
             </div>
-            <h3 className="font-bold text-slate-900 text-sm">Academic Structure</h3>
-            <p className="text-xs text-slate-500 leading-relaxed font-serif">
-              Clean citation footnotes, semantic linking, and source mapping optimized for documentation reading.
-            </p>
-          </div>
 
-          <div className="p-6 bg-white border border-slate-200 rounded-xl hover:border-indigo-200 transition-all flex flex-col gap-3 shadow-xs">
-            <div className="w-10 h-10 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
-              <Share2 className="h-5 w-5" />
+            {/* Feature 2: Links */}
+            <div className="bg-white p-8 rounded-xl border border-slate-200 hover:border-[#6b38d4]/15 transition-all duration-300 flex flex-col gap-5 shadow-2xs">
+              <div className="w-12 h-12 bg-[#006b5e]/10 rounded-lg flex items-center justify-center text-[#006b5e]">
+                <LinkIcon className="h-6 w-6" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="font-bold text-slate-900 text-base">Links</h3>
+                <p className="text-sm text-[#494454] leading-relaxed font-serif">
+                  Connect ideas like Wikipedia. Our engine identifies cross-references between your documents to create a dense knowledge net.
+                </p>
+              </div>
             </div>
-            <h3 className="font-bold text-slate-900 text-sm">Fast Sharing</h3>
-            <p className="text-xs text-slate-500 leading-relaxed font-serif">
-              Publish public wikis, share unlisted research, or keep folders private as your personal second brain.
-            </p>
+
+            {/* Feature 3: Graphs */}
+            <div className="bg-white p-8 rounded-xl border border-slate-200 hover:border-[#6b38d4]/15 transition-all duration-300 flex flex-col gap-5 shadow-2xs">
+              <div className="w-12 h-12 bg-[#855000]/10 rounded-lg flex items-center justify-center text-[#855000]">
+                <Network className="h-6 w-6" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="font-bold text-slate-900 text-base">Graphs</h3>
+                <p className="text-sm text-[#494454] leading-relaxed font-serif">
+                  Visualize relationships. See the big picture with interactive maps of how your research papers and notes relate to each other.
+                </p>
+              </div>
+            </div>
           </div>
         </section>
 
         {/* Recently Published Wikis Section */}
-        <section className="w-full space-y-6 border-t border-slate-200 pt-16 text-center">
-          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest font-mono flex items-center justify-center gap-1.5">
-            <Compass className="h-4 w-4 text-slate-400" />
-            Explore Recently Published Wikis
-          </h3>
-          
-          <div className="grid gap-6 sm:grid-cols-3">
-            <div className="group rounded-xl border border-slate-200 bg-white p-5 text-left hover:border-indigo-300 hover:shadow-md transition-all">
-              <span className="text-indigo-650 font-bold text-sm group-hover:underline block truncate">
-                Machine Learning Atlas
-              </span>
-              <p className="text-xs text-slate-500 mt-2 font-serif line-clamp-2 leading-relaxed">
-                A comprehensive knowledge directory mapping concepts and references.
-              </p>
-              <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-100 text-[10px] text-slate-400 font-mono">
-                <span>8 pages</span>
-                <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-100 uppercase">Public</span>
+        <section className="bg-slate-50/50 border-t border-slate-200/80 py-20">
+          <div className="max-w-[1200px] mx-auto px-16 space-y-10">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+              <div className="space-y-1">
+                <h2 className="text-3xl font-extrabold text-[#1a1c1b] tracking-tight flex items-center gap-2">
+                  <Compass className="h-7 w-7 text-slate-400" />
+                  Public Wiki Gallery
+                </h2>
+                <p className="text-xs text-slate-500 font-mono">
+                  Explore knowledge bases built by our community
+                </p>
               </div>
             </div>
-
-            <div className="group rounded-xl border border-slate-200 bg-white p-5 text-left hover:border-indigo-300 hover:shadow-md transition-all">
-              <span className="text-indigo-650 font-bold text-sm group-hover:underline block truncate">
-                Startup Handbook
-              </span>
-              <p className="text-xs text-slate-500 mt-2 font-serif line-clamp-2 leading-relaxed">
-                Aggregating foundational paradigms and operational guidelines.
-              </p>
-              <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-100 text-[10px] text-slate-400 font-mono">
-                <span>12 pages</span>
-                <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-100 uppercase">Public</span>
+            
+            <div className="grid gap-6 sm:grid-cols-3">
+              <div className="group rounded-xl border border-slate-200 bg-white p-5 text-left hover:border-[#6b38d4]/30 hover:shadow-md transition-all">
+                <span className="text-[#6d3bd7] font-bold text-sm group-hover:underline block truncate">
+                  Machine Learning Atlas
+                </span>
+                <p className="text-xs text-[#494454] mt-2 font-serif line-clamp-2 leading-relaxed">
+                  A comprehensive knowledge directory mapping concepts and references.
+                </p>
+                <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-100 text-[10px] text-slate-400 font-mono">
+                  <span>8 pages</span>
+                  <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-100 uppercase">Public</span>
+                </div>
               </div>
-            </div>
 
-            <div className="group rounded-xl border border-slate-200 bg-white p-5 text-left hover:border-indigo-300 hover:shadow-md transition-all">
-              <span className="text-indigo-650 font-bold text-sm group-hover:underline block truncate">
-                Travel Knowledge Base
-              </span>
-              <p className="text-xs text-slate-500 mt-2 font-serif line-clamp-2 leading-relaxed">
-                Structured reference documentation organizing travel logistics.
-              </p>
-              <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-100 text-[10px] text-slate-400 font-mono">
-                <span>5 pages</span>
-                <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-100 uppercase">Public</span>
+              <div className="group rounded-xl border border-slate-200 bg-white p-5 text-left hover:border-[#6b38d4]/30 hover:shadow-md transition-all">
+                <span className="text-[#6d3bd7] font-bold text-sm group-hover:underline block truncate">
+                  Startup Handbook
+                </span>
+                <p className="text-xs text-[#494454] mt-2 font-serif line-clamp-2 leading-relaxed">
+                  Aggregating foundational paradigms and operational guidelines.
+                </p>
+                <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-100 text-[10px] text-slate-400 font-mono">
+                  <span>12 pages</span>
+                  <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-100 uppercase">Public</span>
+                </div>
+              </div>
+
+              <div className="group rounded-xl border border-slate-200 bg-white p-5 text-left hover:border-[#6b38d4]/30 hover:shadow-md transition-all">
+                <span className="text-[#6d3bd7] font-bold text-sm group-hover:underline block truncate">
+                  Travel Knowledge Base
+                </span>
+                <p className="text-xs text-[#494454] mt-2 font-serif line-clamp-2 leading-relaxed">
+                  Structured reference documentation organizing travel logistics.
+                </p>
+                <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-100 text-[10px] text-slate-400 font-mono">
+                  <span>5 pages</span>
+                  <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-100 uppercase">Public</span>
+                </div>
               </div>
             </div>
           </div>
@@ -191,8 +198,25 @@ export default async function LandingPage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-200 py-6 text-center text-xs text-slate-400 font-mono">
-        &copy; {new Date().getFullYear()} Instant Wiki. Built for documentation precision.
+      <footer className="bg-[#FAFAF8] border-t border-slate-200/80 py-8">
+        <div className="max-w-[1200px] mx-auto px-16 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="text-center md:text-left space-y-1">
+            <span className="font-mono text-xs font-bold uppercase tracking-widest text-[#1a1c1b]">
+              INSTANT WIKI
+            </span>
+            <p className="text-xs text-[#494454]">Built by creators. Powered by Instant Wiki.</p>
+          </div>
+          <div className="flex flex-col items-center md:items-end gap-2 text-xs font-mono text-[#494454]">
+            <div className="flex gap-6">
+              <a className="hover:text-[#6b38d4] transition-colors" href="#">Privacy</a>
+              <a className="hover:text-[#6b38d4] transition-colors" href="#">Terms</a>
+              <a className="hover:text-[#6b38d4] transition-colors" href="#">Support</a>
+            </div>
+            <span className="text-[#006b5e] bg-[#6ef9e2]/15 px-3 py-0.5 rounded-full text-[10px]">
+              12,483 pages generated today
+            </span>
+          </div>
+        </div>
       </footer>
     </div>
   );
