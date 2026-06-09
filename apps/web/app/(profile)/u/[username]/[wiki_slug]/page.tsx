@@ -19,9 +19,11 @@ import {
   Network,
   Bookmark,
   Sparkles,
+  Check,
 } from "lucide-react"
 import WikiSearch from "./wiki-search"
-import { mockArticles, mockSources } from "./mock-data"
+import { WikiGeneratorRepository } from "@/lib/repositories/wiki-generator"
+import { DocumentRepository } from "@/lib/repositories/document"
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -110,7 +112,57 @@ export default async function WikiPage({ params }: WikiPageProps) {
     day: "numeric",
   })
 
-  const mainArticles = Object.values(mockArticles)
+  // 3. Fetch Documents
+  let documents: any[] = []
+  if (wiki?.id) {
+    try {
+      documents = await DocumentRepository.fetchWikiDocuments(wiki.id)
+    } catch (err) {
+      console.error("Error fetching documents:", err)
+    }
+  }
+
+  // 4. Fetch Pages
+  let wikiPages: any[] = []
+  if (wiki?.id) {
+    try {
+      wikiPages = await WikiGeneratorRepository.fetchWikiPages(wiki.id)
+    } catch (err) {
+      console.error("Error fetching wiki pages:", err)
+    }
+  }
+
+  // Fallback if empty and isMocked
+  if (wikiPages.length === 0 && isMocked) {
+    wikiPages = [
+      {
+        slug: "foundations-of-data-operations",
+        title: "Foundations of Data Operations",
+        summary: "Introductory framework, cleaning methods, and data ingestion architectures.",
+        page_type: "ROOT",
+        generation_status: "GENERATED",
+        confidence_score: 0.98
+      },
+      {
+        slug: "core-algorithmic-frameworks",
+        title: "Core Algorithmic Frameworks",
+        summary: "Analyzing optimization gradients, neural layer dimensions, and validation splits.",
+        page_type: "TOPIC",
+        generation_status: "GENERATED",
+        confidence_score: 0.94
+      },
+      {
+        slug: "deployment-vector-indexing",
+        title: "Deployment & Vector Indexing",
+        summary: "Scaling vector databases, configuring cosine indices, and microservice APIs.",
+        page_type: "TOPIC",
+        generation_status: "GENERATED",
+        confidence_score: 0.89
+      }
+    ]
+  }
+
+  const mainArticles = wikiPages
 
   return (
     <div className="relative flex flex-col gap-8 py-8 max-w-6xl mx-auto px-6 font-sans">
@@ -154,15 +206,15 @@ export default async function WikiPage({ params }: WikiPageProps) {
             {/* Stats row */}
             <div className="flex gap-4 border-y border-slate-200/60 py-2.5 font-mono text-xs text-slate-500">
               <div id="home-stat-pages">
-                <span className="font-bold text-slate-800">{mockSources.length}</span> Sources
+                <span className="font-bold text-slate-800">{documents.length}</span> Sources
               </div>
               <span className="text-slate-300">|</span>
               <div id="home-stat-concepts">
-                <span className="font-bold text-slate-800">{mainArticles.length}</span> Core Chapters
+                <span className="font-bold text-slate-800">{wikiPages.length}</span> Core Chapters
               </div>
               <span className="text-slate-300">|</span>
               <div id="home-stat-relationships">
-                <span className="font-bold text-slate-800">8</span> Extracted Nodes
+                <span className="font-bold text-slate-800">{wikiPages.filter(p => p.parent_page_id).length}</span> Hierarchical Links
               </div>
             </div>
           </div>
@@ -174,7 +226,7 @@ export default async function WikiPage({ params }: WikiPageProps) {
               AI Overview Summary
             </div>
             <p className="text-base text-slate-700 leading-relaxed font-serif pl-3 border-l-2 border-slate-300 italic" id="home-overview-text">
-              {wiki.description || `This wiki covers computational research, sequence alignments, analysis pipelines, and machine learning models for predictions. Compiled from ${mockSources.length} core reference documents.`}
+              {wiki.description || `This wiki covers computational research, sequence alignments, analysis pipelines, and machine learning models for predictions. Compiled from ${documents.length} core reference documents.`}
             </p>
           </div>
 
@@ -242,12 +294,20 @@ export default async function WikiPage({ params }: WikiPageProps) {
                       {article.title}
                     </Link>
                     <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">
-                      {article.summary}
+                      {article.summary || "No summary discovered for this page skeleton yet."}
                     </p>
                   </div>
                   <div className="flex items-center justify-between pt-4 mt-auto">
                     <span className="text-[10px] text-slate-400 font-mono">
-                      {article.citations.length} Citation{article.citations.length === 1 ? "" : "s"}
+                      {article.generation_status === "GENERATED" ? (
+                        <span className="inline-flex items-center gap-1 text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100 font-bold uppercase tracking-wider text-[9px]">
+                          <Check className="h-2.5 w-2.5" /> {article.page_type}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100 font-bold uppercase tracking-wider text-[9px] animate-pulse">
+                          Pending Load
+                        </span>
+                      )}
                     </span>
                     <Link
                       href={`/u/${username}/${wiki_slug}/${article.slug}`}
@@ -267,14 +327,17 @@ export default async function WikiPage({ params }: WikiPageProps) {
               3. Sources & References
             </h2>
             <ol className="space-y-1.5 text-xs text-slate-500 font-mono list-decimal pl-4">
-              {mockSources.map((source) => (
+              {documents.map((source) => (
                 <li key={source.id} className="hover:text-slate-800 transition-colors">
                   <Link href={`/u/${username}/${wiki_slug}/sources`} className="hover:underline">
-                    {source.name}
+                    {source.filename}
                   </Link>{" "}
-                  — {source.pagesCount} pages, {source.conceptsCount} concepts found.
+                  — {source.source_type} Source ({source.mime_type}).
                 </li>
               ))}
+              {documents.length === 0 && (
+                <li className="text-slate-400">No source documents uploaded yet.</li>
+              )}
             </ol>
           </section>
         </div>

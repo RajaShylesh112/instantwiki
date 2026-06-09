@@ -1,4 +1,12 @@
+import { createClient } from "@supabase/supabase-js"
+import { WikiRepository } from "@/lib/repositories/wiki"
+import { DocumentRepository } from "@/lib/repositories/document"
 import SourcesView from "./sources-view"
+
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_KEY!
+)
 
 interface SourcesPageProps {
   params: Promise<{
@@ -9,5 +17,63 @@ interface SourcesPageProps {
 
 export default async function SourcesPage({ params }: SourcesPageProps) {
   const { username, wiki_slug } = await params
-  return <SourcesView username={username} wikiSlug={wiki_slug} />
+
+  // 1. Resolve owner user ID
+  let ownerUser: { id: string; email: string; username: string } | null = null
+  try {
+    const { data, error } = await supabase
+      .from("users")
+      .select("id, email, username")
+      .eq("username", username.toLowerCase())
+      .maybeSingle()
+
+    if (!error && data) {
+      ownerUser = data
+    }
+  } catch (err) {
+    console.error("Error fetching owner in sources page:", err)
+  }
+
+  // 2. Fetch Wiki
+  let wiki: any = null
+  let isMocked = false
+
+  if (ownerUser) {
+    try {
+      wiki = await WikiRepository.fetchWikiBySlug(ownerUser.id, wiki_slug)
+    } catch (dbErr: any) {
+      if (dbErr?.code === "42P01") {
+        isMocked = true
+      }
+    }
+  }
+
+  // Fallback mock wiki if not found
+  if (isMocked || !wiki) {
+    wiki = {
+      id: "mock-wiki-id",
+      title: "Machine Learning Atlas",
+      slug: wiki_slug,
+    }
+    isMocked = true
+  }
+
+  // 3. Fetch Documents
+  let initialDocuments: any[] = []
+  if (wiki?.id) {
+    try {
+      initialDocuments = await DocumentRepository.fetchWikiDocuments(wiki.id)
+    } catch (err) {
+      console.error("Error fetching wiki documents:", err)
+    }
+  }
+
+  return (
+    <SourcesView 
+      username={username} 
+      wikiSlug={wiki_slug} 
+      wikiId={wiki.id}
+      initialDocuments={initialDocuments}
+    />
+  )
 }

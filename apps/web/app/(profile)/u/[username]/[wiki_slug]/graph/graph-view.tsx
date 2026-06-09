@@ -3,25 +3,16 @@
 import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
 import { Search, ZoomIn, ZoomOut, Maximize2, Network, X, BookOpen, HelpCircle } from "lucide-react"
-import { mockNodes, mockLinks, mockArticles } from "../mock-data"
+import { WikiPage } from "@/lib/repositories/wiki-generator"
 
 interface GraphViewProps {
   username: string
   wikiSlug: string
+  wikiId: string
+  initialPages: WikiPage[]
 }
 
-const nodePositions: Record<string, { x: number; y: number }> = {
-  "foundations-of-data-operations": { x: 400, y: 250 },
-  "core-algorithmic-frameworks": { x: 220, y: 180 },
-  "deployment-vector-indexing": { x: 580, y: 180 },
-  "data-cleaning": { x: 400, y: 400 },
-  "gradient-descent": { x: 120, y: 100 },
-  "activation-functions": { x: 180, y: 60 },
-  "vector-databases": { x: 680, y: 100 },
-  "cosine-similarity": { x: 620, y: 60 },
-}
-
-export default function GraphView({ username, wikiSlug }: GraphViewProps) {
+export default function GraphView({ username, wikiSlug, wikiId, initialPages = [] }: GraphViewProps) {
   const [zoom, setZoom] = useState(1.0)
   const [pan, setPan] = useState({ x: 0, y: 0 })
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
@@ -32,10 +23,90 @@ export default function GraphView({ username, wikiSlug }: GraphViewProps) {
   const isDraggingRef = useRef(false)
   const dragStartRef = useRef({ x: 0, y: 0 })
 
+  // 1. Process Pages into Graph Nodes
+  const nodes = initialPages.map(page => {
+    let group = 2 // TOPIC
+    let val = 20
+    if (page.page_type === "ROOT") {
+      group = 1
+      val = 26
+    } else if (page.page_type === "SUBTOPIC" || page.page_type === "REFERENCE") {
+      group = 3
+      val = 14
+    }
+
+    return {
+      id: page.id,
+      name: page.title,
+      slug: page.slug,
+      summary: page.summary || "No summary discovered for this page.",
+      page_type: page.page_type,
+      group,
+      val
+    }
+  })
+
+  // 2. Process Parent-Child Links
+  const links: { source: string; target: string }[] = []
+  initialPages.forEach(page => {
+    if (page.parent_page_id) {
+      links.push({
+        source: page.parent_page_id,
+        target: page.id
+      })
+    }
+  })
+
+  // 3. Calculate Node Positions Dynamically in a tree circular layout
+  const calculateNodePositions = (pages: WikiPage[]) => {
+    const positions: Record<string, { x: number; y: number }> = {}
+    if (pages.length === 0) return positions
+    
+    // Locate the root node
+    const root = pages.find(p => p.page_type === "ROOT") || pages.find(p => p.parent_page_id === null) || pages[0]
+    positions[root.id] = { x: 400, y: 250 }
+
+    // Resolve children of root
+    const children = pages.filter(p => p.parent_page_id === root.id && p.id !== root.id)
+    children.forEach((child, idx) => {
+      const angle = (idx / children.length) * 2 * Math.PI
+      const radius = 170
+      const cx = 400 + Math.cos(angle) * radius
+      const cy = 250 + Math.sin(angle) * radius
+      positions[child.id] = { x: cx, y: cy }
+
+      // Resolve grandchildren of this child node
+      const grandchildren = pages.filter(p => p.parent_page_id === child.id && p.id !== child.id)
+      grandchildren.forEach((gc, gcIdx) => {
+        // Offset angle for grandchildren spread
+        const gcAngle = angle + ((gcIdx - (grandchildren.length - 1) / 2) * 0.45)
+        const gcRadius = 110
+        positions[gc.id] = {
+          x: cx + Math.cos(gcAngle) * gcRadius,
+          y: cy + Math.sin(gcAngle) * gcRadius
+        }
+      })
+    })
+
+    // Fallback coordinates for any unmapped orphaned nodes
+    pages.forEach((page, idx) => {
+      if (!positions[page.id]) {
+        positions[page.id] = { 
+          x: 200 + (idx * 80) % 400, 
+          y: 100 + (idx * 80) % 300 
+        }
+      }
+    })
+
+    return positions
+  }
+
+  const nodePositions = calculateNodePositions(initialPages)
+
   const connectedNodeIds = new Set<string>()
   if (selectedNodeId) {
     connectedNodeIds.add(selectedNodeId)
-    mockLinks.forEach((link) => {
+    links.forEach((link) => {
       if (link.source === selectedNodeId) {
         connectedNodeIds.add(link.target)
       } else if (link.target === selectedNodeId) {
@@ -44,8 +115,7 @@ export default function GraphView({ username, wikiSlug }: GraphViewProps) {
     })
   }
 
-  const selectedNode = mockNodes.find((n) => n.id === selectedNodeId)
-  const selectedArticle = selectedNode ? mockArticles[selectedNode.slug] : null
+  const selectedNode = nodes.find((n) => n.id === selectedNodeId)
 
   const handleMouseDown = (e: React.MouseEvent) => {
     const target = e.target as SVGElement
@@ -85,7 +155,7 @@ export default function GraphView({ username, wikiSlug }: GraphViewProps) {
   }
 
   const filteredNodes = searchQuery.trim()
-    ? mockNodes.filter((node) => node.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    ? nodes.filter((node) => node.name.toLowerCase().includes(searchQuery.toLowerCase()))
     : []
 
   const handleSelectSearchedNode = (nodeId: string) => {
@@ -133,7 +203,7 @@ export default function GraphView({ username, wikiSlug }: GraphViewProps) {
           {isSearchFocused && searchQuery.trim() && (
             <div className="absolute left-0 right-0 mt-1 bg-white border border-slate-200 rounded-md shadow-lg overflow-hidden max-h-48 overflow-y-auto">
               {filteredNodes.length === 0 ? (
-                <div className="p-3 text-[11px] text-slate-450 font-mono text-center">
+                <div className="p-3 text-[11px] text-slate-455 font-mono text-center">
                   No concepts match
                 </div>
               ) : (
@@ -198,7 +268,7 @@ export default function GraphView({ username, wikiSlug }: GraphViewProps) {
           <g transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
             
             {/* Draw Links/Edges */}
-            {mockLinks.map((link, idx) => {
+            {links.map((link, idx) => {
               const start = nodePositions[link.source]
               const end = nodePositions[link.target]
               if (!start || !end) return null
@@ -225,7 +295,7 @@ export default function GraphView({ username, wikiSlug }: GraphViewProps) {
             })}
 
             {/* Draw Nodes */}
-            {mockNodes.map((node) => {
+            {nodes.map((node) => {
               const pos = nodePositions[node.id]
               if (!pos) return null
 
@@ -274,7 +344,7 @@ export default function GraphView({ username, wikiSlug }: GraphViewProps) {
                   <text
                     y={radius + 14}
                     textAnchor="middle"
-                    className="text-[10px] font-bold font-mono tracking-tight fill-slate-800 pointer-events-none select-none bg-white/80"
+                    className="text-[10px] font-bold font-mono tracking-tight fill-slate-800 pointer-events-none select-none"
                   >
                     {node.name}
                   </text>
@@ -314,43 +384,26 @@ export default function GraphView({ username, wikiSlug }: GraphViewProps) {
             </div>
 
             <div className="space-y-1.5">
-              <h4 className="text-sm font-extrabold text-slate-950">
+              <h4 className="text-sm font-extrabold text-slate-955">
                 {selectedNode.name}
               </h4>
               <p className="text-xs text-slate-500 leading-relaxed font-serif">
-                {selectedArticle
-                  ? selectedArticle.summary
-                  : `Automated node generated under the ${
-                      selectedNode.group === 1
-                        ? "Ingest"
-                        : selectedNode.group === 2
-                        ? "Extract"
-                        : "Analyze"
-                    } extraction sequence.`}
+                {selectedNode.summary}
               </p>
             </div>
 
             <div className="flex items-center justify-between pt-2">
               <span className="text-[10px] font-mono text-slate-400">
-                Weight: {selectedNode.val} val
+                Type: {selectedNode.page_type}
               </span>
               
-              {selectedArticle ? (
-                <Link
-                  href={`/u/${username}/${wikiSlug}/${selectedNode.slug}`}
-                  id="graph-popup-btn-open"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-[#6b38d4] text-white hover:bg-[#8455ef] rounded-md transition-colors"
-                >
-                  <BookOpen className="h-3.5 w-3.5" /> Open Article
-                </Link>
-              ) : (
-                <button
-                  disabled
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-slate-100 text-slate-450 rounded-md cursor-not-allowed"
-                >
-                  No Article
-                </button>
-              )}
+              <Link
+                href={`/u/${username}/${wikiSlug}/${selectedNode.slug}`}
+                id="graph-popup-btn-open"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-[#6b38d4] text-white hover:bg-[#8455ef] rounded-md transition-colors"
+              >
+                <BookOpen className="h-3.5 w-3.5" /> Open Article
+              </Link>
             </div>
           </div>
         )}

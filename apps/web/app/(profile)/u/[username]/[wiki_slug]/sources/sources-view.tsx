@@ -1,24 +1,43 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Database, Plus, Trash2, UploadCloud, X, AlertTriangle, FileText, Globe, Check, Loader2, Sparkles } from "lucide-react"
-import { mockSources, MockSource } from "../mock-data"
+import { 
+  Database, 
+  Plus, 
+  Trash2, 
+  UploadCloud, 
+  X, 
+  AlertTriangle, 
+  FileText, 
+  Globe, 
+  Check, 
+  Loader2, 
+  Sparkles 
+} from "lucide-react"
+import { Document } from "@/lib/repositories/document"
 
 interface SourcesViewProps {
   username: string
   wikiSlug: string
+  wikiId: string
+  initialDocuments: Document[]
 }
 
-export default function SourcesView({ username, wikiSlug }: SourcesViewProps) {
+export default function SourcesView({ username, wikiSlug, wikiId, initialDocuments = [] }: SourcesViewProps) {
   const router = useRouter()
-  const [sources, setSources] = useState<MockSource[]>(mockSources)
+  const [sources, setSources] = useState<Document[]>(initialDocuments)
   const [isUploaderOpen, setIsUploaderOpen] = useState(false)
   const [isDragOver, setIsDragOver] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadSuccess, setUploadSuccess] = useState(false)
   const [urlInput, setUrlInput] = useState("")
-  const [sourceToDelete, setSourceToDelete] = useState<MockSource | null>(null)
+  const [sourceToDelete, setSourceToDelete] = useState<Document | null>(null)
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   // Upload Processing UX v2 States
   const [progressPercent, setProgressPercent] = useState(0)
@@ -27,7 +46,26 @@ export default function SourcesView({ username, wikiSlug }: SourcesViewProps) {
   const [isSynthesizing, setIsSynthesizing] = useState(false)
   const [synthesisProgress, setSynthesisProgress] = useState(0)
   
+  // Custom premium notification state
+  const [notification, setNotification] = useState<{
+    type: "success" | "error" | "info"
+    title: string
+    message: string
+  } | null>(null)
+
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const showNotification = (type: "success" | "error" | "info", title: string, message: string) => {
+    setNotification({ type, title, message })
+    setTimeout(() => {
+      setNotification((prev) => {
+        if (prev?.title === title && prev?.message === message) {
+          return null
+        }
+        return prev
+      })
+    }, 4500)
+  }
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
@@ -43,14 +81,14 @@ export default function SourcesView({ username, wikiSlug }: SourcesViewProps) {
     setIsDragOver(false)
     const files = e.dataTransfer.files
     if (files.length > 0) {
-      simulateUpload(files[0].name)
+      uploadFile(files[0])
     }
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (files && files.length > 0) {
-      simulateUpload(files[0].name)
+      uploadFile(files[0])
     }
   }
 
@@ -61,13 +99,13 @@ export default function SourcesView({ username, wikiSlug }: SourcesViewProps) {
     setProgressPercent(0)
   }
 
-  const handleTriggerSynthesis = () => {
+  const handleTriggerSynthesis = async () => {
     setIsSynthesizing(true)
     setSynthesisProgress(0)
 
-    // Simulate concepts extraction based on uploaded files
+    // Pre-populate concepts extraction list from sources for immediate visual richness
     const concepts = sources.flatMap((src) => {
-      const baseName = src.name.replace(/\.[^/.]+$/, "").replace(/[_-]/g, " ")
+      const baseName = src.filename.replace(/\.[^/.]+$/, "").replace(/[_-]/g, " ")
       return [
         baseName,
         `${baseName} Core Foundations`,
@@ -84,87 +122,180 @@ export default function SourcesView({ username, wikiSlug }: SourcesViewProps) {
       "Model Inference Pipeline"
     ])
 
-    const interval = setInterval(() => {
-      setSynthesisProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval)
-          return 100
-        }
-        return prev + 5
+    try {
+      const response = await fetch(`/api/wiki/${wikiId}/synthesis`, {
+        method: "POST"
       })
-    }, 100)
 
-    setTimeout(() => {
-      clearInterval(interval)
-      setSynthesisProgress(100)
-      setTimeout(() => {
-        router.push(`/u/${username}/${wikiSlug}`)
-        router.refresh()
-      }, 600)
-    }, 2100)
-  }
-
-  const simulateUpload = (fileName: string) => {
-    setIsUploading(true)
-    setUploadSuccess(false)
-    setUploadedFileName(fileName)
-    setProgressPercent(10)
-
-    const interval = setInterval(() => {
-      setProgressPercent((prev) => {
-        if (prev >= 90) {
-          clearInterval(interval)
-          return 90
-        }
-        return prev + 20
-      })
-    }, 180)
-
-    setTimeout(() => {
-      clearInterval(interval)
-      setProgressPercent(100)
-      setIsUploading(false)
-      setUploadSuccess(true)
-
-      const cleanName = fileName.endsWith(".pdf") || fileName.endsWith(".txt") || fileName.endsWith(".md")
-        ? fileName
-        : `${fileName}.pdf`
-
-      const newSource: MockSource = {
-        id: `src-${Date.now()}`,
-        name: cleanName,
-        uploadedAt: "Just now",
-        pagesCount: Math.floor(Math.random() * 8) + 3,
-        conceptsCount: Math.floor(Math.random() * 12) + 5,
+      if (!response.ok) {
+        const res = await response.json()
+        throw new Error(res.error || "Failed to initiate wiki page generation.")
       }
 
-      setSources((prev) => [newSource, ...prev])
+      const res = await response.json()
+      const jobId = res.jobId
 
-      // Close the uploader box after a short delay showing success
-      setTimeout(() => {
-        setUploadSuccess(false)
-        setIsUploaderOpen(false)
-      }, 1000)
-    }, 1200)
+      // Poll the job status
+      const pollInterval = setInterval(async () => {
+        try {
+          const jobResponse = await fetch(`/api/wiki/${wikiId}/job/${jobId}`)
+          if (!jobResponse.ok) {
+            throw new Error("Failed to check background synthesis status.")
+          }
+
+          const jobData = await jobResponse.json()
+          const job = jobData.job
+
+          if (!job) {
+            throw new Error("Job details not found.")
+          }
+
+          // Map step to progress bar percentage
+          let progress = 10
+          if (job.current_step === "EXTRACTION") progress = 20
+          else if (job.current_step === "CHUNKING") progress = 40
+          else if (job.current_step === "EMBEDDINGS") progress = 60
+          else if (job.current_step === "TOPIC_DISCOVERY") progress = 80
+          else if (job.current_step === "SKELETON") progress = 95
+          else if (job.current_step === "FINISHED") progress = 100
+
+          setSynthesisProgress(progress)
+
+          if (job.status === "COMPLETED") {
+            clearInterval(pollInterval)
+            setSynthesisProgress(100)
+            showNotification(
+              "success",
+              "Wiki Generated Successfully",
+              "All pages pre-generated, hyperlinked, and indexed from sources!"
+            )
+            setTimeout(() => {
+              router.push(`/u/${username}/${wikiSlug}`)
+              router.refresh()
+            }, 800)
+          } else if (job.status === "FAILED") {
+            clearInterval(pollInterval)
+            setIsSynthesizing(false)
+            showNotification(
+              "error",
+              "Generation Failed",
+              job.error || "An error occurred during background processing."
+            )
+          }
+        } catch (pollErr: any) {
+          console.error("Polling check failed:", pollErr)
+        }
+      }, 900)
+
+    } catch (err: any) {
+      setIsSynthesizing(false)
+      showNotification(
+        "error",
+        "Synthesis Failed",
+        err.message || "Failed to trigger page generation pipeline."
+      )
+    }
   }
 
-  const handleUrlImport = (e: React.FormEvent) => {
+
+  const uploadFile = (file: File) => {
+    setIsUploading(true)
+    setUploadSuccess(false)
+    setUploadedFileName(file.name)
+    setProgressPercent(0)
+
+    const formData = new FormData()
+    formData.append("sourceType", "FILE")
+    formData.append("file", file)
+
+    const xhr = new XMLHttpRequest()
+    xhr.open("POST", `/api/wiki/${wikiId}/documents`, true)
+
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        const percent = Math.round((event.loaded / event.total) * 100)
+        setProgressPercent(percent)
+      }
+    }
+
+    xhr.onload = () => {
+      setIsUploading(false)
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const res = JSON.parse(xhr.responseText)
+          if (res.error) {
+            showNotification("error", "Upload Failed", res.error)
+            return
+          }
+
+          if (res.status === "EXISTS") {
+            showNotification(
+              "info",
+              "File Already Exists",
+              `"${file.name}" has already been uploaded to this wiki. Reprocessing skipped.`
+            )
+            setIsUploaderOpen(false)
+            return
+          }
+
+          if (res.status === "REUSED") {
+            showNotification(
+              "success",
+              "Instant Cache Match",
+              `"${file.name}" was matched with an identical document in our storage bucket. Reused cached output instantly!`
+            )
+          } else {
+            setUploadSuccess(true)
+            showNotification(
+              "success",
+              "File Uploaded",
+              `Successfully uploaded and indexed "${file.name}".`
+            )
+          }
+
+          setSources((prev) => [res.doc, ...prev])
+          
+          setTimeout(() => {
+            setUploadSuccess(false)
+            setIsUploaderOpen(false)
+          }, 1000)
+        } catch (e) {
+          showNotification("error", "Response Parse Error", "Failed to parse API response.")
+        }
+      } else {
+        try {
+          const res = JSON.parse(xhr.responseText)
+          showNotification("error", "Ingestion Rejected", res.error || "Upload failed.")
+        } catch (e) {
+          showNotification("error", "Upload Error", `Upload failed with status code ${xhr.status}.`)
+        }
+      }
+    }
+
+    xhr.onerror = () => {
+      setIsUploading(false)
+      showNotification("error", "Network Error", "A connection issue occurred during file transfer.")
+    }
+
+    xhr.send(formData)
+  }
+
+  const handleUrlImport = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!urlInput.trim()) return
 
     setIsUploading(true)
     setUploadSuccess(false)
-    setProgressPercent(15)
+    setProgressPercent(10)
 
-    let cleanName = "webpage-source.pdf"
+    let estimatedName = "webpage-source.txt"
     try {
       const urlObj = new URL(urlInput)
-      cleanName = `${urlObj.hostname}${urlObj.pathname.replace(/\/$/, "")}.pdf`
+      estimatedName = `${urlObj.hostname}${urlObj.pathname.replace(/\/$/, "")}.txt`
     } catch (err) {
-      cleanName = urlInput.replace(/https?:\/\//, "").replace(/\//g, "-") + ".pdf"
+      estimatedName = urlInput.replace(/https?:\/\//, "").replace(/\//g, "-") + ".txt"
     }
-
-    setUploadedFileName(cleanName)
+    setUploadedFileName(estimatedName)
 
     const interval = setInterval(() => {
       setProgressPercent((prev) => {
@@ -172,40 +303,155 @@ export default function SourcesView({ username, wikiSlug }: SourcesViewProps) {
           clearInterval(interval)
           return 90
         }
-        return prev + 25
+        return prev + 10
       })
-    }, 180)
+    }, 200)
 
-    setTimeout(() => {
+    try {
+      const formData = new FormData()
+      formData.append("sourceType", "URL")
+      formData.append("url", urlInput)
+
+      const response = await fetch(`/api/wiki/${wikiId}/documents`, {
+        method: "POST",
+        body: formData
+      })
+
       clearInterval(interval)
       setProgressPercent(100)
-      setIsUploading(false)
-      setUploadSuccess(true)
 
-      const newSource: MockSource = {
-        id: `src-${Date.now()}`,
-        name: cleanName,
-        uploadedAt: "Just now",
-        pagesCount: 1,
-        conceptsCount: Math.floor(Math.random() * 5) + 2,
+      const res = await response.json()
+      setIsUploading(false)
+
+      if (!response.ok) {
+        showNotification("error", "Website Rejected", res.error || "Failed to import web page.")
+        return
       }
 
-      setSources((prev) => [newSource, ...prev])
+      if (res.status === "EXISTS") {
+        showNotification(
+          "info",
+          "URL Content Exists",
+          "This webpage content has already been scraped and imported to this wiki."
+        )
+        setIsUploaderOpen(false)
+        return
+      }
+
+      if (res.status === "REUSED") {
+        showNotification(
+          "success",
+          "Instant Deduplication",
+          "Webpage text matches an identical record in cache. Reused storage path instantly!"
+        )
+      } else {
+        setUploadSuccess(true)
+        showNotification(
+          "success",
+          "URL Text Extracted",
+          "Successfully fetched text content, hashed, and uploaded to storage."
+        )
+      }
+
+      setSources((prev) => [res.doc, ...prev])
       setUrlInput("")
 
-      // Close the uploader box after a short delay showing success
       setTimeout(() => {
         setUploadSuccess(false)
         setIsUploaderOpen(false)
       }, 1000)
-    }, 1000)
+
+    } catch (err) {
+      clearInterval(interval)
+      setIsUploading(false)
+      showNotification("error", "Fetch Failed", "Could not complete import of the URL page.")
+    }
   }
 
-  const confirmDelete = () => {
-    if (sourceToDelete) {
+  const confirmDelete = async () => {
+    if (!sourceToDelete) return
+
+    try {
+      const response = await fetch(`/api/wiki/${wikiId}/documents`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ docId: sourceToDelete.id })
+      })
+
+      if (!response.ok) {
+        const res = await response.json()
+        showNotification("error", "Deletion Failed", res.error || "Failed to remove the document.")
+        return
+      }
+
+      showNotification(
+        "success",
+        "Document Deleted",
+        `Permanently removed "${sourceToDelete.filename}" and updated index mappings.`
+      )
       setSources((prev) => prev.filter((s) => s.id !== sourceToDelete.id))
       setSourceToDelete(null)
+    } catch (err) {
+      showNotification("error", "Network Error", "Could not complete document deletion request.")
     }
+  }
+
+  const formatDate = (dateStr: string) => {
+    try {
+      const d = new Date(dateStr)
+      return d.toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      })
+    } catch (e) {
+      return dateStr
+    }
+  }
+
+  const getSourceTypeBadge = (sourceType: string) => {
+    const isFile = sourceType === "FILE"
+    return (
+      <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wide border ${
+        isFile 
+          ? "bg-purple-50 text-purple-700 border-purple-100" 
+          : "bg-blue-50 text-blue-700 border-blue-100"
+      }`}>
+        {sourceType}
+      </span>
+    )
+  }
+
+  const getMimeTypeBadge = (mimeType: string) => {
+    let colors = "bg-slate-50 text-slate-700 border-slate-100"
+    if (mimeType === "pdf") colors = "bg-red-50 text-red-700 border-red-100"
+    else if (mimeType === "md") colors = "bg-indigo-50 text-indigo-700 border-indigo-100"
+    else if (mimeType === "txt") colors = "bg-amber-50 text-amber-700 border-amber-100"
+    else if (mimeType === "docx") colors = "bg-sky-50 text-sky-700 border-sky-100"
+    
+    return (
+      <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border ${colors}`}>
+        {mimeType}
+      </span>
+    )
+  }
+
+  const getStatusBadge = (status: string) => {
+    let colors = "bg-gray-50 text-gray-700 border-gray-100"
+    if (status === "READY") colors = "bg-emerald-50 text-emerald-700 border-emerald-100"
+    else if (status === "PENDING" || status === "PROCESSING") colors = "bg-yellow-50 text-yellow-700 border-yellow-100 animate-pulse"
+    else if (status === "FAILED") colors = "bg-rose-50 text-rose-700 border-rose-100"
+
+    return (
+      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${colors}`}>
+        {status === "READY" && <Check className="h-3 w-3" />}
+        {status}
+      </span>
+    )
   }
 
   return (
@@ -267,12 +513,12 @@ export default function SourcesView({ username, wikiSlug }: SourcesViewProps) {
                   type="file"
                   ref={fileInputRef}
                   onChange={handleFileChange}
-                  accept=".pdf,.txt,.md"
+                  accept=".pdf,.txt,.md,.docx"
                   className="hidden"
                   disabled={isUploading}
                 />
                 
-                {isUploading ? (
+                {isUploading && uploadedFileName.endsWith(".txt") === false && urlInput === "" ? (
                   <div className="space-y-3 flex flex-col items-center w-full max-w-xs px-4">
                     <div className="flex items-center justify-between text-xs font-mono font-bold text-slate-700 w-full">
                       <span>Uploading...</span>
@@ -281,7 +527,7 @@ export default function SourcesView({ username, wikiSlug }: SourcesViewProps) {
                     <div className="w-full h-1.5 bg-[#6b38d4]/10 rounded-full overflow-hidden">
                       <div className="h-full bg-[#6b38d4] transition-all duration-300 ease-out" style={{ width: `${progressPercent}%` }}></div>
                     </div>
-                    <p className="text-[10px] text-slate-400 font-mono">Synthesizing document mapping...</p>
+                    <p className="text-[10px] text-slate-400 font-mono">Hashing & uploading document...</p>
                   </div>
                 ) : uploadSuccess ? (
                   <div className="space-y-2 flex flex-col items-center text-emerald-600">
@@ -295,7 +541,7 @@ export default function SourcesView({ username, wikiSlug }: SourcesViewProps) {
                       Drag and drop file here or <span className="text-[#6b38d4]">click to browse</span>
                     </p>
                     <p className="text-[10px] text-slate-400 font-mono">
-                      Supports PDF, TXT, or MD up to 10MB
+                      Supports PDF, TXT, MD, or DOCX up to 10MB
                     </p>
                   </div>
                 )}
@@ -306,13 +552,13 @@ export default function SourcesView({ username, wikiSlug }: SourcesViewProps) {
                 onSubmit={handleUrlImport}
                 className="border border-slate-200 rounded-lg p-5 bg-slate-50 flex flex-col justify-between"
               >
-                {isUploading ? (
+                {isUploading && (urlInput !== "" || uploadedFileName.endsWith(".txt")) ? (
                   <div className="space-y-3 py-6 flex flex-col items-center w-full">
                     <Loader2 className="h-6 w-6 text-[#6b38d4] animate-spin" />
                     <div className="w-full max-w-xs h-1.5 bg-[#6b38d4]/10 rounded-full overflow-hidden">
-                      <div className="h-full bg-[#6b38d4] transition-all duration-300 ease-out" style={{ width: `${progressPercent}%` }}></div>
+                      <div className="h-full bg-[#6b38d4] transition-all duration-350 ease-out" style={{ width: `${progressPercent}%` }}></div>
                     </div>
-                    <p className="text-[10px] text-slate-500 font-mono">Downloading: {progressPercent}%</p>
+                    <p className="text-[10px] text-slate-500 font-mono">Downloading & scraping page: {progressPercent}%</p>
                   </div>
                 ) : (
                   <>
@@ -333,7 +579,7 @@ export default function SourcesView({ username, wikiSlug }: SourcesViewProps) {
                         />
                       </div>
                       <p className="text-[10px] text-slate-400 font-mono leading-relaxed">
-                        We will scrape content, strip boilerplates, and build semantic concept links automatically.
+                        We will scrape text content, verify textual nature, hash it, and save the extracted text.
                       </p>
                     </div>
 
@@ -373,11 +619,11 @@ export default function SourcesView({ username, wikiSlug }: SourcesViewProps) {
               <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-slate-400 font-mono">
                 Uploaded
               </th>
-              <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-slate-400 font-mono text-right">
-                Pages Ingested
+              <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-slate-400 font-mono">
+                Source / Type
               </th>
-              <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-slate-400 font-mono text-right">
-                Concepts Found
+              <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-slate-400 font-mono">
+                Status
               </th>
               <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-slate-400 font-mono text-center">
                 Actions
@@ -395,21 +641,29 @@ export default function SourcesView({ username, wikiSlug }: SourcesViewProps) {
               sources.map((src) => (
                 <tr key={src.id} className="hover:bg-slate-50/50 transition-colors">
                   <td className="px-5 py-3.5" id="sources-col-name">
-                    <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-[#6b38d4] shrink-0" />
-                      <span className="text-xs sm:text-sm font-semibold text-slate-800 truncate max-w-xs sm:max-w-md">
-                        {src.name}
+                    <div className="flex flex-col gap-0.5">
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-[#6b38d4] shrink-0" />
+                        <span className="text-xs sm:text-sm font-semibold text-slate-800 truncate max-w-xs sm:max-w-md">
+                          {src.filename}
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-slate-400 font-mono ml-6">
+                        hash: {src.content_hash.slice(0, 8)}...
                       </span>
                     </div>
                   </td>
                   <td className="px-5 py-3.5 text-xs text-slate-505 font-mono" id="sources-col-date">
-                    {src.uploadedAt}
+                    {isMounted ? formatDate(src.created_at) : ""}
                   </td>
-                  <td className="px-5 py-3.5 text-xs text-slate-800 font-mono text-right" id="sources-col-pages">
-                    {src.pagesCount}
+                  <td className="px-5 py-3.5 text-xs font-mono" id="sources-col-pages">
+                    <div className="flex gap-1.5">
+                      {getSourceTypeBadge(src.source_type)}
+                      {getMimeTypeBadge(src.mime_type)}
+                    </div>
                   </td>
-                  <td className="px-5 py-3.5 text-xs text-slate-800 font-mono text-right" id="sources-col-concepts">
-                    {src.conceptsCount}
+                  <td className="px-5 py-3.5 text-xs font-mono" id="sources-col-concepts">
+                    {getStatusBadge(src.processing_status)}
                   </td>
                   <td className="px-5 py-3.5 text-center">
                     <button
@@ -460,7 +714,7 @@ export default function SourcesView({ username, wikiSlug }: SourcesViewProps) {
                 <AlertTriangle className="h-6 w-6 shrink-0 mt-0.5" />
                 <div className="space-y-1">
                   <h3 className="text-sm font-extrabold text-slate-900">
-                    Delete "{sourceToDelete.name}"?
+                    Delete "{sourceToDelete.filename}"?
                   </h3>
                   <p className="text-xs text-slate-500 leading-relaxed font-mono">
                     Document Removal & Database Cascade Alert
@@ -469,7 +723,7 @@ export default function SourcesView({ username, wikiSlug }: SourcesViewProps) {
               </div>
 
               <div className="p-3 bg-red-50/50 border border-red-100 rounded-md text-xs text-red-800 leading-relaxed font-sans">
-                Deleting this file will permanently prune any generated concept pages whose only validation reference is "{sourceToDelete.name}". Other multi-reference concepts will remain but lose this document's citations.
+                Deleting this file will permanently prune any generated concept pages whose only validation reference is "{sourceToDelete.filename}". Other multi-reference concepts will remain but lose this document's citations.
               </div>
 
               <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
@@ -607,6 +861,35 @@ export default function SourcesView({ username, wikiSlug }: SourcesViewProps) {
         </div>
       )}
 
+      {/* Toast Notification */}
+      {notification && (
+        <div className={`fixed bottom-5 right-5 z-55 flex items-start gap-3 p-4 rounded-lg shadow-lg border transition-all transform translate-y-0 animate-fade-in ${
+          notification.type === "success" 
+            ? "bg-emerald-50 border-emerald-200 text-emerald-800" 
+            : notification.type === "error" 
+            ? "bg-rose-50 border-rose-200 text-rose-800" 
+            : "bg-purple-50 border-purple-200 text-purple-800"
+        }`}>
+          {notification.type === "success" ? (
+            <Check className="h-5 w-5 shrink-0 mt-0.5 text-emerald-600" />
+          ) : notification.type === "error" ? (
+            <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5 text-rose-650" />
+          ) : (
+            <Sparkles className="h-5 w-5 shrink-0 mt-0.5 text-[#6b38d4]" />
+          )}
+          <div className="space-y-0.5 flex-1 min-w-0">
+            <h4 className="text-xs font-bold font-sans">{notification.title}</h4>
+            <p className="text-[11px] font-sans text-slate-500 leading-normal max-w-xs">{notification.message}</p>
+          </div>
+          <button 
+            onClick={() => setNotification(null)}
+            className="p-0.5 hover:bg-black/5 rounded-full text-current shrink-0 self-start"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
+
       <style jsx global>{`
         @keyframes fadeIn {
           from { opacity: 0; }
@@ -614,6 +897,9 @@ export default function SourcesView({ username, wikiSlug }: SourcesViewProps) {
         }
         .animate-fade-in {
           animation: fadeIn 0.12s ease-out forwards;
+        }
+        .z-55 {
+          z-index: 55;
         }
       `}</style>
     </div>
