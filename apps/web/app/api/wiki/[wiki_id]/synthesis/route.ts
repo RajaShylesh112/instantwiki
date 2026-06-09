@@ -217,6 +217,12 @@ async function runIngestionPipeline(jobId: string, wikiId: string, documents: Do
     discoveredTopics = getDefaultFallbackTopics()
   }
   
+  // Clear any existing pages for this wiki to avoid duplicate slug/alias key collisions
+  await supabase
+    .from("wiki_pages")
+    .delete()
+    .eq("wiki_id", wikiId)
+
   // Step 4: Page Hierarchy Tree & Skeleton Creation
   await WikiGeneratorRepository.updateJobStep(jobId, "SKELETON")
   

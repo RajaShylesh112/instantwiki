@@ -246,11 +246,19 @@ export default function SourcesView({ username, wikiSlug, wikiId, initialDocumen
             )
           } else {
             setUploadSuccess(true)
-            showNotification(
-              "success",
-              "File Uploaded",
-              `Successfully uploaded and indexed "${file.name}".`
-            )
+            if (res.warning) {
+              showNotification(
+                "info",
+                "Sandbox Fallback Active",
+                `Indexed "${file.name}" in sandbox fallback (storage bucket 'documents' not found).`
+              )
+            } else {
+              showNotification(
+                "success",
+                "File Uploaded",
+                `Successfully uploaded and indexed "${file.name}".`
+              )
+            }
           }
 
           setSources((prev) => [res.doc, ...prev])
@@ -346,11 +354,19 @@ export default function SourcesView({ username, wikiSlug, wikiId, initialDocumen
         )
       } else {
         setUploadSuccess(true)
-        showNotification(
-          "success",
-          "URL Text Extracted",
-          "Successfully fetched text content, hashed, and uploaded to storage."
-        )
+        if (res.warning) {
+          showNotification(
+            "info",
+            "Sandbox Fallback Active",
+            "Scraped webpage in sandbox fallback (storage bucket 'documents' not found)."
+          )
+        } else {
+          showNotification(
+            "success",
+            "URL Text Extracted",
+            "Successfully fetched text content, hashed, and uploaded to storage."
+          )
+        }
       }
 
       setSources((prev) => [res.doc, ...prev])
