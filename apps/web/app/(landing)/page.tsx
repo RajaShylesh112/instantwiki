@@ -2,7 +2,7 @@ import Link from "next/link";
 import { auth } from "auth";
 import { redirect } from "next/navigation";
 import Header from "@/components/header";
-import { Sparkles, FileText, Link as LinkIcon, Network, Compass } from "lucide-react";
+import { Sparkles, FileText, Link as LinkIcon, Network, Compass, ArrowRight } from "lucide-react";
 
 export default async function LandingPage() {
   // 1. Redirect to profile page if user is already authenticated
@@ -25,9 +25,9 @@ export default async function LandingPage() {
           </div>
 
           <h1 className="text-5xl font-extrabold sm:text-6xl tracking-tight text-[#1a1c1b] leading-tight">
-            Your documents already contain <br />
+            Transform your documents into <br />
             <span className="bg-gradient-to-r from-[#6b38d4] via-[#8455ef] to-[#6d3bd7] bg-clip-text text-transparent">
-              a website. We build it.
+              structured knowledge webs
             </span>
           </h1>
 
@@ -73,7 +73,7 @@ export default async function LandingPage() {
               <h2 className="text-3xl font-extrabold text-[#1a1c1b] tracking-tight">
                 Interactive Wiki Preview
               </h2>
-              <p className="text-slate-500 text-sm max-w-lg mx-auto font-serif">
+              <p className="text-slate-505 text-sm max-w-lg mx-auto font-serif">
                 Explore document links and entities through our dynamic force-directed workspace canvas.
               </p>
             </div>
@@ -138,7 +138,53 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        {/* Recently Published Wikis Section */}
+        {/* How It Works */}
+        <section className="max-w-[1200px] mx-auto px-16 py-24 space-y-16 border-t border-slate-100">
+          <div className="text-center">
+            <h2 className="text-3xl font-extrabold text-[#1a1c1b] tracking-tight">
+              How It Works
+            </h2>
+          </div>
+          
+          <div className="flex flex-col md:flex-row justify-between items-start gap-12">
+            {/* Step 1 */}
+            <div className="flex-1 text-center space-y-3">
+              <div className="text-7xl font-extrabold text-[#6b38d4]/10 font-mono leading-none">01</div>
+              <h3 className="text-lg font-bold text-[#1a1c1b]">Upload</h3>
+              <p className="text-sm text-[#494454] leading-relaxed font-serif">
+                Drag and drop your folders of PDFs, Markdowns, or Word docs.
+              </p>
+            </div>
+            
+            <div className="hidden md:flex items-center pt-8 text-slate-350 select-none">
+              <ArrowRight className="h-6 w-6" />
+            </div>
+            
+            {/* Step 2 */}
+            <div className="flex-1 text-center space-y-3">
+              <div className="text-7xl font-extrabold text-[#6b38d4]/10 font-mono leading-none">02</div>
+              <h3 className="text-lg font-bold text-[#1a1c1b]">Analyze</h3>
+              <p className="text-sm text-[#494454] leading-relaxed font-serif">
+                The system scans your files to identify topics and connections.
+              </p>
+            </div>
+            
+            <div className="hidden md:flex items-center pt-8 text-slate-350 select-none">
+              <ArrowRight className="h-6 w-6" />
+            </div>
+            
+            {/* Step 3 */}
+            <div className="flex-1 text-center space-y-3">
+              <div className="text-7xl font-extrabold text-[#6b38d4]/10 font-mono leading-none">03</div>
+              <h3 className="text-lg font-bold text-[#1a1c1b]">Publish</h3>
+              <p className="text-sm text-[#494454] leading-relaxed font-serif">
+                Instantly browse your documents as a professional website.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Recently Published Wikis Section / Public Wiki Gallery */}
         <section className="bg-slate-50/50 border-t border-slate-200/80 py-20">
           <div className="max-w-[1200px] mx-auto px-16 space-y-10">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
