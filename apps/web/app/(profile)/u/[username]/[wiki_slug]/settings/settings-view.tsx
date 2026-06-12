@@ -7,17 +7,21 @@ import { Settings, Lock, EyeOff, Globe, AlertCircle, Trash2, X, AlertTriangle, C
 interface SettingsViewProps {
   username: string
   wikiSlug: string
+  initialWiki: {
+    id: string
+    title: string
+    description: string
+    visibility: "PRIVATE" | "UNLISTED" | "PUBLIC"
+  }
 }
 
-export default function SettingsView({ username, wikiSlug }: SettingsViewProps) {
+export default function SettingsView({ username, wikiSlug, initialWiki }: SettingsViewProps) {
   const router = useRouter()
   
-  const [title, setTitle] = useState("Machine Learning Atlas")
+  const [title, setTitle] = useState(initialWiki.title)
   const [slug, setSlug] = useState(wikiSlug)
-  const [description, setDescription] = useState(
-    "A comprehensive knowledge directory and structured handbook mapping concepts, algorithms, and references in Machine Learning."
-  )
-  const [visibility, setVisibility] = useState<"PRIVATE" | "UNLISTED" | "PUBLIC">("PUBLIC")
+  const [description, setDescription] = useState(initialWiki.description)
+  const [visibility, setVisibility] = useState<"PRIVATE" | "UNLISTED" | "PUBLIC">(initialWiki.visibility)
   
   const [isSaving, setIsSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
@@ -49,16 +53,31 @@ export default function SettingsView({ username, wikiSlug }: SettingsViewProps) 
     }, 1500)
   }
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (deleteInput !== wikiSlug) return
 
     setIsDeleting(true)
-    
-    setTimeout(() => {
+    try {
+      const response = await fetch(`/api/wiki/${initialWiki.id}`, {
+        method: "DELETE",
+      })
+
+      if (!response.ok) {
+        const res = await response.json()
+        alert(res.error || "Failed to delete wiki workspace.")
+        setIsDeleting(false)
+        return
+      }
+
       setIsDeleting(false)
       setIsDeleteModalOpen(false)
-      router.push("/dashboard")
-    }, 2000)
+      router.push("/workspaces")
+      router.refresh()
+    } catch (err) {
+      console.error("Error deleting workspace:", err)
+      alert("A network error occurred. Please try again.")
+      setIsDeleting(false)
+    }
   }
 
   return (

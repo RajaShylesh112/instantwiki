@@ -15,7 +15,7 @@ export default async function CreateWikiPage() {
   const username = session.user.username || "sandbox"
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAFAF8]">
+    <div className="min-h-screen flex flex-col bg-[#FAFAF8] dark:bg-zinc-950 text-slate-800 dark:text-zinc-200">
       {/* Navigation Header */}
       <Header />
 
@@ -25,17 +25,17 @@ export default async function CreateWikiPage() {
         {/* Breadcrumbs / Header Info */}
         <div className="space-y-1">
           <div className="flex items-center gap-1.5 text-xs font-mono text-slate-400">
-            <Link href={`/u/${username}`} className="hover:text-[#6b38d4] transition-colors">
+            <Link href={`/u/${username}`} className="hover:text-[#6b38d4] dark:hover:text-purple-400 transition-colors">
               @{username}
             </Link>
             <ChevronRight className="h-3.5 w-3.5" />
-            <span className="text-slate-600 font-semibold">create-wiki</span>
+            <span className="text-slate-655 dark:text-zinc-300 font-semibold">create-wiki</span>
           </div>
 
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
             Create Wiki Workspace
           </h1>
-          <p className="text-xs text-slate-500 font-mono">
+          <p className="text-xs text-slate-500 dark:text-zinc-400 font-mono">
             Define a new index partition for structured document mapping
           </p>
         </div>

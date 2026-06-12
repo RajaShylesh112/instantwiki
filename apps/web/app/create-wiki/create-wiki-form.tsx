@@ -134,17 +134,17 @@ export default function CreateWikiForm({ username }: CreateWikiFormProps) {
   return (
     <div className="grid gap-8 lg:grid-cols-12 items-start">
       {/* Left Column: Form Controls (Col-span 7) */}
-      <form onSubmit={handleSubmit} className="lg:col-span-7 space-y-6 bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-        <div className="border-b border-slate-100 pb-3 flex items-center gap-2">
-          <FolderPlus className="h-5 w-5 text-[#6b38d4]" />
-          <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider font-mono">
+      <form onSubmit={handleSubmit} className="lg:col-span-7 space-y-6 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm">
+        <div className="border-b border-slate-100 dark:border-zinc-800 pb-3 flex items-center gap-2">
+          <FolderPlus className="h-5 w-5 text-[#6b38d4] dark:text-purple-400" />
+          <h2 className="text-sm font-bold text-slate-800 dark:text-zinc-200 uppercase tracking-wider font-mono">
             New Wiki Details
           </h2>
         </div>
 
         {formError && (
-          <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-150 rounded-lg text-xs text-red-800 leading-normal">
-            <AlertCircle className="h-4.5 w-4.5 text-red-650 shrink-0 mt-0.5" />
+          <div className="flex items-start gap-2 p-3 bg-red-50 dark:bg-red-950/20 border border-red-150 dark:border-red-900/50 rounded-lg text-xs text-red-800 dark:text-red-400 leading-normal">
+            <AlertCircle className="h-4.5 w-4.5 text-red-650 dark:text-red-400 shrink-0 mt-0.5" />
             <span>{formError}</span>
           </div>
         )}
@@ -152,54 +152,54 @@ export default function CreateWikiForm({ username }: CreateWikiFormProps) {
         <div className="space-y-4">
           {/* Title */}
           <div className="space-y-1">
-            <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider font-mono">
+            <label className="text-[11px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider font-mono">
               Wiki Title
             </label>
             <Input
               type="text"
               required
-              placeholder="e.g. Machine Learning Atlas"
+              placeholder="Enter wiki title"
               value={title}
               onChange={(e) => handleTitleChange(e.target.value)}
-              className="border-slate-200 bg-white text-slate-900 focus:border-[#6b38d4] focus:ring-[#6b38d4]/50 text-sm"
+              className="border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 focus:border-[#6b38d4] focus:ring-[#6b38d4]/50 text-sm"
               disabled={isPending}
             />
           </div>
 
           {/* Slug */}
           <div className="space-y-1">
-            <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider font-mono flex items-center justify-between">
+            <label className="text-[11px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider font-mono flex items-center justify-between">
               <span>URL Slug</span>
-              <span className="text-[10px] text-slate-400 font-normal lowercase">instant.wiki/u/{username}/[slug]</span>
+              <span className="text-[10px] text-slate-400 dark:text-zinc-550 font-normal lowercase">instant.wiki/u/{username}/[slug]</span>
             </label>
             <Input
               type="text"
               required
-              placeholder="e.g. ml-atlas"
+              placeholder="Enter wiki URL slug"
               value={slug}
               onChange={(e) => setSlug(e.target.value.toLowerCase())}
-              className="border-slate-200 bg-white text-slate-900 font-mono text-xs focus:border-[#6b38d4] focus:ring-[#6b38d4]/50"
+              className="border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 font-mono text-xs focus:border-[#6b38d4] focus:ring-[#6b38d4]/50"
               disabled={isPending}
             />
           </div>
 
           {/* Description */}
           <div className="space-y-1">
-            <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider font-mono">
+            <label className="text-[11px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider font-mono">
               Description (Optional)
             </label>
             <Textarea
-              placeholder="Summarize the core topics and purpose of this wiki database..."
+              placeholder="Enter wiki description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="border-slate-200 bg-white text-slate-900 font-serif text-sm focus:border-[#6b38d4] focus:ring-[#6b38d4]/50 min-h-[100px]"
+              className="border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 font-serif text-sm focus:border-[#6b38d4] focus:ring-[#6b38d4]/50 min-h-[100px]"
               disabled={isPending}
             />
           </div>
 
           {/* Visibility */}
           <div className="space-y-2">
-            <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider font-mono block">
+            <label className="text-[11px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider font-mono block">
               Visibility & Permissions
             </label>
             
@@ -208,15 +208,15 @@ export default function CreateWikiForm({ username }: CreateWikiFormProps) {
               <button
                 type="button"
                 onClick={() => setVisibility("PUBLIC")}
-                className={`p-3 border rounded-lg flex flex-col text-left gap-1.5 transition-all ${
+                className={`p-3 border rounded-lg flex flex-col text-left gap-1.5 transition-all cursor-pointer ${
                   visibility === "PUBLIC"
-                    ? "border-[#6b38d4] bg-[#6b38d4]/10 text-slate-800"
-                    : "border-slate-200 bg-slate-50 hover:bg-slate-100/30 text-slate-500"
+                    ? "border-[#6b38d4] bg-[#6b38d4]/10 text-slate-800 dark:text-zinc-105"
+                    : "border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/50 hover:bg-slate-100/30 dark:hover:bg-zinc-800 text-slate-500 dark:text-zinc-400"
                 }`}
                 disabled={isPending}
               >
                 <span className="flex items-center gap-1 text-xs font-bold font-mono">
-                  <Globe className={`h-4 w-4 ${visibility === "PUBLIC" ? "text-[#006b5e]" : "text-slate-400"}`} />
+                  <Globe className={`h-4 w-4 ${visibility === "PUBLIC" ? "text-[#006b5e] dark:text-[#6ef9e2]" : "text-slate-400 dark:text-zinc-500"}`} />
                   Public
                 </span>
                 <span className="text-[10px] leading-relaxed">Anyone can view this wiki index.</span>
@@ -226,15 +226,15 @@ export default function CreateWikiForm({ username }: CreateWikiFormProps) {
               <button
                 type="button"
                 onClick={() => setVisibility("UNLISTED")}
-                className={`p-3 border rounded-lg flex flex-col text-left gap-1.5 transition-all ${
+                className={`p-3 border rounded-lg flex flex-col text-left gap-1.5 transition-all cursor-pointer ${
                   visibility === "UNLISTED"
-                    ? "border-[#6b38d4] bg-[#6b38d4]/10 text-slate-800"
-                    : "border-slate-200 bg-slate-50 hover:bg-slate-100/30 text-slate-500"
+                    ? "border-[#6b38d4] bg-[#6b38d4]/10 text-slate-800 dark:text-zinc-105"
+                    : "border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/50 hover:bg-slate-100/30 dark:hover:bg-zinc-800 text-slate-500 dark:text-zinc-400"
                 }`}
                 disabled={isPending}
               >
                 <span className="flex items-center gap-1 text-xs font-bold font-mono">
-                  <EyeOff className={`h-4 w-4 ${visibility === "UNLISTED" ? "text-slate-550" : "text-slate-400"}`} />
+                  <EyeOff className={`h-4 w-4 ${visibility === "UNLISTED" ? "text-slate-550 dark:text-zinc-300" : "text-slate-400 dark:text-zinc-500"}`} />
                   Unlisted
                 </span>
                 <span className="text-[10px] leading-relaxed">Only people with the link can view it.</span>
@@ -244,15 +244,15 @@ export default function CreateWikiForm({ username }: CreateWikiFormProps) {
               <button
                 type="button"
                 onClick={() => setVisibility("PRIVATE")}
-                className={`p-3 border rounded-lg flex flex-col text-left gap-1.5 transition-all ${
+                className={`p-3 border rounded-lg flex flex-col text-left gap-1.5 transition-all cursor-pointer ${
                   visibility === "PRIVATE"
-                    ? "border-[#6b38d4] bg-[#6b38d4]/10 text-slate-800"
-                    : "border-slate-200 bg-slate-50 hover:bg-slate-100/30 text-slate-500"
+                    ? "border-[#6b38d4] bg-[#6b38d4]/10 text-slate-800 dark:text-zinc-105"
+                    : "border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/50 hover:bg-slate-100/30 dark:hover:bg-zinc-800 text-slate-500 dark:text-zinc-400"
                 }`}
                 disabled={isPending}
               >
                 <span className="flex items-center gap-1 text-xs font-bold font-mono">
-                  <Lock className={`h-4 w-4 ${visibility === "PRIVATE" ? "text-red-500" : "text-slate-400"}`} />
+                  <Lock className={`h-4 w-4 ${visibility === "PRIVATE" ? "text-red-500 dark:text-red-400" : "text-slate-400 dark:text-zinc-500"}`} />
                   Private
                 </span>
                 <span className="text-[10px] leading-relaxed">Only you can view and edit this workspace.</span>
@@ -262,11 +262,11 @@ export default function CreateWikiForm({ username }: CreateWikiFormProps) {
         </div>
 
         {/* Buttons */}
-        <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+        <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-zinc-800/80">
           <button
             type="button"
-            onClick={() => router.push(`/u/${username}`)}
-            className="px-4 py-2 text-xs font-semibold text-slate-550 hover:text-slate-800 transition-colors"
+            onClick={() => router.push(`/workspaces`)}
+            className="px-4 py-2 text-xs font-semibold text-slate-550 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-zinc-200 transition-colors cursor-pointer"
             disabled={isPending}
           >
             Cancel
@@ -274,7 +274,7 @@ export default function CreateWikiForm({ username }: CreateWikiFormProps) {
           <Button
             type="submit"
             disabled={isPending}
-            className="px-5 py-2 text-xs font-semibold bg-[#6b38d4] hover:bg-[#8455ef] text-white rounded-md flex items-center gap-1.5 shadow-sm"
+            className="px-5 py-2 text-xs font-semibold bg-[#6b38d4] hover:bg-[#8455ef] text-white rounded-md flex items-center gap-1.5 shadow-sm cursor-pointer"
           >
             {isPending ? (
               <>
@@ -308,7 +308,7 @@ export default function CreateWikiForm({ username }: CreateWikiFormProps) {
             </label>
             <input
               type="text"
-              placeholder="e.g. Machine Learning"
+              placeholder="Enter wiki topic"
               value={topicPrompt}
               onChange={(e) => setTopicPrompt(e.target.value)}
               className="w-full px-3 py-2 text-xs text-slate-100 bg-slate-950/60 border border-slate-800 rounded-md focus:outline-none focus:ring-1 focus:ring-[#6b38d4] font-sans"
@@ -321,7 +321,7 @@ export default function CreateWikiForm({ username }: CreateWikiFormProps) {
               Focus & Scope (Optional)
             </label>
             <textarea
-              placeholder="e.g. For computer science students, focusing on neural network architectures"
+              placeholder="Enter focus and scope details"
               value={scopePrompt}
               onChange={(e) => setScopePrompt(e.target.value)}
               className="w-full px-3 py-2 text-xs text-slate-100 bg-slate-950/60 border border-slate-800 rounded-md focus:outline-none focus:ring-1 focus:ring-[#6b38d4] font-sans min-h-[60px]"

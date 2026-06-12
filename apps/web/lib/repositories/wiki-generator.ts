@@ -48,6 +48,9 @@ export interface DocumentChunk {
   page_number: number
   chunk_index: number
   content: string
+  heading?: string | null
+  section?: string | null
+  chunk_type?: string | null
   created_at: string
 }
 
@@ -117,6 +120,20 @@ export const WikiGeneratorRepository = {
       .eq("wiki_id", wikiId)
       .order("started_at", { ascending: false })
       .limit(1)
+      .maybeSingle()
+
+    if (error) {
+      if (error.code === "42P01") return null
+      throw error
+    }
+    return data as ProcessingJob | null
+  },
+
+  async getJobById(jobId: string): Promise<ProcessingJob | null> {
+    const { data, error } = await supabase
+      .from("processing_jobs")
+      .select("*")
+      .eq("id", jobId)
       .maybeSingle()
 
     if (error) {
@@ -253,6 +270,9 @@ export const WikiGeneratorRepository = {
     page_number: number
     chunk_index: number
     content: string
+    heading?: string | null
+    section?: string | null
+    chunk_type?: string | null
   }): Promise<DocumentChunk> {
     const { data, error } = await supabase
       .from("document_chunks")
@@ -272,6 +292,113 @@ export const WikiGeneratorRepository = {
     const { error } = await supabase
       .from("chunk_embeddings")
       .insert(embedding)
+
+    if (error) throw error
+  },
+
+  async insertChunksBulk(chunks: {
+    document_id: string
+    page_number: number
+    chunk_index: number
+    content: string
+    heading?: string | null
+    section?: string | null
+    chunk_type?: string | null
+  }[]): Promise<DocumentChunk[]> {
+    if (chunks.length === 0) return []
+    const { data, error } = await supabase
+      .from("document_chunks")
+      .insert(chunks)
+      .select("*")
+
+    if (error) throw error
+    return data as DocumentChunk[]
+  },
+
+  async insertEmbeddingsBulk(embeddings: {
+    chunk_id: string
+    embedding: number[]
+    embedding_model: string
+  }[]): Promise<void> {
+    if (embeddings.length === 0) return
+    const { error } = await supabase
+      .from("chunk_embeddings")
+      .insert(embeddings)
+
+    if (error) throw error
+  },
+
+  async insertPageSkeletonsBulk(pages: {
+    wiki_id: string
+    slug: string
+    title: string
+    summary?: string
+    page_type: PageType
+    confidence_score?: number
+  }[]): Promise<WikiPage[]> {
+    if (pages.length === 0) return []
+    const formatted = pages.map(p => ({
+      wiki_id: p.wiki_id,
+      parent_page_id: null,
+      slug: p.slug.toLowerCase(),
+      title: p.title,
+      summary: p.summary || null,
+      page_type: p.page_type,
+      generation_status: "PENDING",
+      confidence_score: p.confidence_score ?? 1.0
+    }))
+    const { data, error } = await supabase
+      .from("wiki_pages")
+      .insert(formatted)
+      .select("*")
+
+    if (error) throw error
+    return data as WikiPage[]
+  },
+
+  async insertPageAliasesBulk(aliases: { page_id: string; alias: string }[]): Promise<void> {
+    if (aliases.length === 0) return
+    const { error } = await supabase
+      .from("wiki_page_aliases")
+      .insert(aliases)
+
+    if (error) throw error
+  },
+
+  async insertPageLinksBulk(links: {
+    wiki_id: string
+    source_page_id: string
+    target_page_id: string
+    link_type: string
+  }[]): Promise<void> {
+    if (links.length === 0) return
+    const { error } = await supabase
+      .from("page_links")
+      .insert(links)
+
+    if (error) throw error
+  },
+
+  async insertPageChunkReferencesBulk(refs: { page_id: string; chunk_id: string }[]): Promise<void> {
+    if (refs.length === 0) return
+    const { error } = await supabase
+      .from("page_chunk_references")
+      .insert(refs)
+
+    if (error) throw error
+  },
+
+  async insertCitationsBulk(citations: {
+    page_id: string
+    document_id: string
+    page_number: number
+    highlight: string
+    context: string
+  }[]): Promise<void> {
+    if (citations.length === 0) return
+    const { error } = await supabase
+      .from("wiki_page_citations")
+      .insert(citations)
 
     if (error) throw error
   },
@@ -351,10 +478,10 @@ export const WikiGeneratorRepository = {
     }
   },
 
-  async fetchPageChunkReferences(pageId: string): Promise<{ chunk_id: string; document_id: string; filename: string; page_number: number }[]> {
+  async fetchPageChunkReferences(pageId: string): Promise<{ chunk_id: string; document_id: string; filename: string; page_number: number; content: string }[]> {
     const { data, error } = await supabase
       .from("page_chunk_references")
-      .select("chunk_id, document_chunks(document_id, page_number, documents(filename))")
+      .select("chunk_id, document_chunks(document_id, page_number, content, documents(filename))")
       .eq("page_id", pageId)
 
     if (error) {
@@ -366,7 +493,8 @@ export const WikiGeneratorRepository = {
       chunk_id: row.chunk_id,
       document_id: row.document_chunks?.document_id || "",
       filename: row.document_chunks?.documents?.filename || "Unknown Source",
-      page_number: row.document_chunks?.page_number || 1
+      page_number: row.document_chunks?.page_number || 1,
+      content: row.document_chunks?.content || ""
     }))
   },
 
@@ -399,5 +527,37 @@ export const WikiGeneratorRepository = {
       throw error
     }
     return data as WikiPageCitation[]
+  },
+
+  // --- PAGE LINKS ---
+  async insertPageLink(link: {
+    wiki_id: string
+    source_page_id: string
+    target_page_id: string
+    link_type?: string
+  }): Promise<void> {
+    const { error } = await supabase
+      .from("page_links")
+      .insert({
+        wiki_id: link.wiki_id,
+        source_page_id: link.source_page_id,
+        target_page_id: link.target_page_id,
+        link_type: link.link_type || "internal"
+      })
+    if (error && error.code !== "23505") { // Ignore duplicates
+      throw error
+    }
+  },
+
+  async fetchPageLinks(wikiId: string): Promise<{ source_page_id: string; target_page_id: string; link_type: string }[]> {
+    const { data, error } = await supabase
+      .from("page_links")
+      .select("source_page_id, target_page_id, link_type")
+      .eq("wiki_id", wikiId)
+    if (error) {
+      if (error.code === "42P01") return []
+      throw error
+    }
+    return data || []
   }
 }

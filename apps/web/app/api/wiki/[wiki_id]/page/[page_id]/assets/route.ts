@@ -71,9 +71,17 @@ export async function GET(
       })
     }
 
+    // Fetch backlinks where target_page_id is this page
+    const { data: backlinksData } = await supabase
+      .from("page_links")
+      .select("source_page_id, link_type")
+      .eq("target_page_id", page_id)
+
     return Response.json({
       citations: enrichedCitations,
-      images: imagesList
+      images: imagesList,
+      chunkReferences: chunkRefs,
+      backlinks: backlinksData || []
     })
 
   } catch (err: any) {

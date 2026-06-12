@@ -40,7 +40,10 @@ export default async function SourcesPage({ params }: SourcesPageProps) {
 
   if (ownerUser) {
     try {
-      wiki = await WikiRepository.fetchWikiBySlug(ownerUser.id, wiki_slug)
+      wiki = await WikiRepository.getOrCreateWikiBySlug(ownerUser.id, wiki_slug)
+      if (wiki.id === "00000000-0000-0000-0000-000000000000") {
+        isMocked = true
+      }
     } catch (dbErr: any) {
       if (dbErr?.code === "42P01") {
         isMocked = true
@@ -50,9 +53,12 @@ export default async function SourcesPage({ params }: SourcesPageProps) {
 
   // Fallback mock wiki if not found
   if (isMocked || !wiki) {
+    const displayTitle = wiki_slug
+      .replace(/-+/g, " ")
+      .replace(/\b\w/g, (char) => char.toUpperCase())
     wiki = {
-      id: "mock-wiki-id",
-      title: "Machine Learning Atlas",
+      id: "00000000-0000-0000-0000-000000000000",
+      title: displayTitle || "Wiki Database",
       slug: wiki_slug,
     }
     isMocked = true

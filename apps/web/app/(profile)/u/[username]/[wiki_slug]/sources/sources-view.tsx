@@ -45,6 +45,54 @@ export default function SourcesView({ username, wikiSlug, wikiId, initialDocumen
   const [conceptsList, setConceptsList] = useState<string[]>([])
   const [isSynthesizing, setIsSynthesizing] = useState(false)
   const [synthesisProgress, setSynthesisProgress] = useState(0)
+  const [currentStep, setCurrentStep] = useState<string>("EXTRACTION")
+  const [estTimeRemaining, setEstTimeRemaining] = useState<number>(45)
+  const [synthesisStatusDetail, setSynthesisStatusDetail] = useState<string>("")
+
+  const [isShortcut, setIsShortcut] = useState(false)
+  const [consoleLogs, setConsoleLogs] = useState<string[]>([])
+  const [activeJobId, setActiveJobId] = useState<string | null>(null)
+
+  const terminalEndRef = useRef<HTMLDivElement>(null)
+  const lastStep = useRef<string | null>(null)
+  const lastLogDetail = useRef<string | null>(null)
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null)
+
+  const addConsoleLog = (msg: string) => {
+    const time = new Date().toLocaleTimeString(undefined, { hour12: false })
+    setConsoleLogs(prev => [...prev, `[${time}] ${msg}`])
+  }
+
+  useEffect(() => {
+    if (terminalEndRef.current) {
+      terminalEndRef.current.scrollIntoView({ behavior: "smooth" })
+    }
+  }, [consoleLogs])
+
+  useEffect(() => {
+    if (!isSynthesizing) return
+    const timer = setInterval(() => {
+      setEstTimeRemaining(prev => (prev > 1 ? prev - 1 : 1))
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [isSynthesizing])
+
+  useEffect(() => {
+    if (!isSynthesizing) return
+    if (currentStep === "EXTRACTION") {
+      setEstTimeRemaining(45)
+    } else if (currentStep === "CHUNKING") {
+      setEstTimeRemaining(prev => Math.min(prev, 40))
+    } else if (currentStep === "EMBEDDINGS") {
+      setEstTimeRemaining(prev => Math.min(prev, 35))
+    } else if (currentStep === "TOPIC_DISCOVERY") {
+      setEstTimeRemaining(prev => Math.min(prev, 22))
+    } else if (currentStep === "SKELETON") {
+      setEstTimeRemaining(prev => Math.min(prev, 15))
+    } else if (currentStep === "FINISHED") {
+      setEstTimeRemaining(0)
+    }
+  }, [currentStep, isSynthesizing])
   
   // Custom premium notification state
   const [notification, setNotification] = useState<{
@@ -99,9 +147,40 @@ export default function SourcesView({ username, wikiSlug, wikiId, initialDocumen
     setProgressPercent(0)
   }
 
+  const handleAbortSynthesis = async () => {
+    if (!activeJobId) return
+    addConsoleLog("ABORT REQUESTED: Cancelling background jobs and cleaning up connections...")
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current)
+      pollIntervalRef.current = null
+    }
+    try {
+      const res = await fetch(`/api/wiki/${wikiId}/job/${activeJobId}`, {
+        method: "DELETE"
+      })
+      if (res.ok) {
+        addConsoleLog("ABORT SUCCESSFUL: Ingestion pipeline stopped.")
+        showNotification("info", "Synthesis Aborted", "Wiki generation aborted by user.")
+      } else {
+        addConsoleLog("ABORT WARNING: Job status could not be changed (already finished or failed).")
+      }
+    } catch (e) {
+      console.error("Failed to abort synthesis:", e)
+      addConsoleLog("ABORT ERROR: Network communication failed.")
+    } finally {
+      setIsSynthesizing(false)
+      setActiveJobId(null)
+    }
+  }
+
   const handleTriggerSynthesis = async () => {
     setIsSynthesizing(true)
     setSynthesisProgress(0)
+    setConsoleLogs([])
+    lastStep.current = null
+    lastLogDetail.current = null
+    
+    addConsoleLog("INITIALIZATION: Establishing connection with wiki synthesis system...")
 
     // Pre-populate concepts extraction list from sources for immediate visual richness
     const concepts = sources.flatMap((src) => {
@@ -123,8 +202,11 @@ export default function SourcesView({ username, wikiSlug, wikiId, initialDocumen
     ])
 
     try {
+      addConsoleLog(`REQUEST: Sending POST request (Shortcut mode: ${isShortcut ? "ACTIVE" : "INACTIVE"})...`)
       const response = await fetch(`/api/wiki/${wikiId}/synthesis`, {
-        method: "POST"
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ shortcut: isShortcut })
       })
 
       if (!response.ok) {
@@ -134,6 +216,8 @@ export default function SourcesView({ username, wikiSlug, wikiId, initialDocumen
 
       const res = await response.json()
       const jobId = res.jobId
+      setActiveJobId(jobId)
+      addConsoleLog(`JOB CREATED: Process ID ${jobId.slice(0, 8)} successfully registered.`)
 
       // Poll the job status
       const pollInterval = setInterval(async () => {
@@ -150,6 +234,14 @@ export default function SourcesView({ username, wikiSlug, wikiId, initialDocumen
             throw new Error("Job details not found.")
           }
 
+          // Parse metadata from job.error if it contains JSON
+          let metadata = null
+          if (job.error && job.error.startsWith("{") && job.error.endsWith("}")) {
+            try {
+              metadata = JSON.parse(job.error)
+            } catch (e) {}
+          }
+
           // Map step to progress bar percentage
           let progress = 10
           if (job.current_step === "EXTRACTION") progress = 20
@@ -160,10 +252,72 @@ export default function SourcesView({ username, wikiSlug, wikiId, initialDocumen
           else if (job.current_step === "FINISHED") progress = 100
 
           setSynthesisProgress(progress)
+          setCurrentStep(job.current_step)
+
+          // Step change logging
+          if (job.current_step !== lastStep.current) {
+            lastStep.current = job.current_step
+            if (job.current_step === "EXTRACTION") {
+              addConsoleLog("EXTRACTION: Downloading documents and running layout structure analysis...")
+            } else if (job.current_step === "CHUNKING") {
+              addConsoleLog("CHUNKING: Segmenting raw text into semantic document paragraphs...")
+            } else if (job.current_step === "EMBEDDINGS") {
+              addConsoleLog("EMBEDDINGS: Submitting batch chunks to vector model for indexing...")
+            } else if (job.current_step === "TOPIC_DISCOVERY") {
+              addConsoleLog("TOPIC_DISCOVERY: Mapping extracted contexts to resolve conceptual chapters...")
+            } else if (job.current_step === "SKELETON") {
+              addConsoleLog("SKELETON: Constructing internal wiki skeleton database structures...")
+            }
+          }
+
+          // Update dynamic status detail and estimated time remaining
+          if (metadata) {
+            if (metadata.est_remaining_seconds !== undefined) {
+              setEstTimeRemaining(metadata.est_remaining_seconds)
+            }
+            
+            // Build dynamic text status details
+            if (job.current_step === "EXTRACTION") {
+              setSynthesisStatusDetail(`Ingesting source documents... (new: ${metadata.new_docs_count || 0}, reused: ${metadata.reused_docs_count || 0})`)
+              const logKey = `extraction-${metadata.new_docs_count}-${metadata.reused_docs_count}`
+              if (lastLogDetail.current !== logKey) {
+                lastLogDetail.current = logKey
+                addConsoleLog(`EXTRACTION INFO: Queued ${metadata.new_docs_count} new docs, reused cache for ${metadata.reused_docs_count} docs.`)
+              }
+            } else if (job.current_step === "EMBEDDINGS") {
+              if (metadata.embedded_chunks !== undefined) {
+                setSynthesisStatusDetail(`Generating vector embeddings... (${metadata.embedded_chunks} of ${metadata.total_chunks} blocks indexed)`)
+                const logKey = `embeddings-${metadata.embedded_chunks}`
+                if (lastLogDetail.current !== logKey) {
+                  lastLogDetail.current = logKey
+                  addConsoleLog(`EMBEDDINGS INDEX: Created vector embeddings for chunk ${metadata.embedded_chunks} of ${metadata.total_chunks}.`)
+                }
+              } else {
+                setSynthesisStatusDetail(`Generating vector embeddings for ${metadata.total_chunks || 0} chunks...`)
+              }
+            } else if (job.current_step === "SKELETON") {
+              if (metadata.current_page_index !== undefined) {
+                setSynthesisStatusDetail(`Synthesizing wiki page ${metadata.current_page_index} of ${metadata.total_pages}: "${metadata.current_page_title || ''}"`)
+                const logKey = `skeleton-${metadata.current_page_index}`
+                if (lastLogDetail.current !== logKey) {
+                  lastLogDetail.current = logKey
+                  addConsoleLog(`SYNTHESIS: Writing page ${metadata.current_page_index}/${metadata.total_pages}: "${metadata.current_page_title || ''}"`)
+                }
+              } else {
+                setSynthesisStatusDetail("Synthesizing wiki pages skeleton...")
+              }
+            } else {
+              setSynthesisStatusDetail("")
+            }
+          } else {
+            setSynthesisStatusDetail("")
+          }
 
           if (job.status === "COMPLETED") {
             clearInterval(pollInterval)
+            pollIntervalRef.current = null
             setSynthesisProgress(100)
+            addConsoleLog("FINISHED: All operations completed successfully.")
             showNotification(
               "success",
               "Wiki Generated Successfully",
@@ -175,7 +329,9 @@ export default function SourcesView({ username, wikiSlug, wikiId, initialDocumen
             }, 800)
           } else if (job.status === "FAILED") {
             clearInterval(pollInterval)
+            pollIntervalRef.current = null
             setIsSynthesizing(false)
+            addConsoleLog(`FAILED: Synthesis pipeline terminated with error: ${job.error || "Unknown error"}`)
             showNotification(
               "error",
               "Generation Failed",
@@ -186,6 +342,7 @@ export default function SourcesView({ username, wikiSlug, wikiId, initialDocumen
           console.error("Polling check failed:", pollErr)
         }
       }, 900)
+      pollIntervalRef.current = pollInterval
 
     } catch (err: any) {
       setIsSynthesizing(false)
@@ -698,8 +855,8 @@ export default function SourcesView({ username, wikiSlug, wikiId, initialDocumen
       </div>
 
       {/* Create Pages Action Card at the Bottom */}
-      <div className="bg-white border border-slate-200 rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm">
-        <div className="space-y-1 text-left">
+      <div className="bg-white border border-slate-200 rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
+        <div className="space-y-1 text-left flex-1">
           <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-[#6b38d4]" />
             Generate Wiki Pages
@@ -710,6 +867,32 @@ export default function SourcesView({ username, wikiSlug, wikiId, initialDocumen
               : "Upload documents or URLs first to begin generating wiki pages."}
           </p>
         </div>
+
+        {/* Quick Generation / Shortcut Toggle Switch */}
+        {sources.length > 0 && (
+          <div className="flex items-center gap-3 border border-purple-100 bg-purple-50/30 rounded-lg p-2.5">
+            <div className="flex flex-col text-left">
+              <span className="text-[11px] font-bold text-slate-700">Quick Generation</span>
+              <span className="text-[9px] text-slate-400 font-mono">Parallelizes DB, generates in &lt;10s</span>
+            </div>
+            <button
+              onClick={() => setIsShortcut(!isShortcut)}
+              type="button"
+              role="switch"
+              aria-checked={isShortcut}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                isShortcut ? "bg-[#6b38d4]" : "bg-slate-200"
+              }`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                  isShortcut ? "translate-x-5" : "translate-x-0"
+                }`}
+              />
+            </button>
+          </div>
+        )}
+
         <button
           onClick={handleTriggerSynthesis}
           disabled={sources.length === 0 || isSynthesizing}
@@ -763,114 +946,163 @@ export default function SourcesView({ username, wikiSlug, wikiId, initialDocumen
 
       {/* Full screen Synthesis overlay */}
       {isSynthesizing && (
-        <div className="fixed inset-0 bg-slate-900/60 z-50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-200 rounded-xl max-w-2xl w-full p-6 shadow-2xl relative overflow-hidden animate-fade-in flex flex-col gap-6">
-            {/* Decorative top gradient border */}
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#6b38d4] via-[#8455ef] to-[#006b5e]" />
+        <div className="fixed inset-0 bg-slate-955/85 z-50 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-4xl w-full p-6 shadow-2xl relative overflow-hidden animate-fade-in flex flex-col gap-5 text-slate-100 font-sans">
+            {/* Glowing top line */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-600 via-indigo-500 to-emerald-500" />
 
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mt-1.5">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3 mt-1">
               <div className="flex items-center gap-2">
-                <Database className="h-4.5 w-4.5 text-[#6b38d4]" />
-                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 font-mono">
-                  Knowledge Synthesis & Page Generation
+                <Database className="h-4.5 w-4.5 text-purple-400 animate-pulse animate-duration-2000" />
+                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono">
+                  SYSTEM SYNTHESIS CORE &bull; WIKI GENERATOR
                 </h2>
               </div>
+              <button
+                onClick={handleAbortSynthesis}
+                className="px-3 py-1.5 bg-red-955/40 hover:bg-red-900/60 border border-red-800/50 hover:border-red-750 text-red-200 text-xs font-mono rounded-md transition-colors flex items-center gap-1.5 shadow-sm"
+              >
+                <X className="h-3.5 w-3.5" /> Abort Synthesis
+              </button>
             </div>
 
             {/* Content grid */}
-            <div className="grid gap-6 md:grid-cols-3">
-              {/* Left Column (col-span 2): Concepts Found */}
-              <div className="md:col-span-2 space-y-4 border border-slate-150 rounded-xl p-5 bg-slate-50/50">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="h-4.5 w-4.5 text-[#6b38d4]" />
-                    <h4 className="text-sm font-bold text-slate-800">Concepts Extracted</h4>
+            <div className="grid gap-6 md:grid-cols-2">
+              {/* Left Column: Radial Progress & Stage details */}
+              <div className="border border-slate-800 rounded-xl p-5 bg-slate-955/35 flex flex-col items-center justify-center text-center space-y-4">
+                <div className="relative flex items-center justify-center">
+                  {/* Circular progress ring */}
+                  <svg className="w-36 h-36 transform -rotate-90">
+                    <circle
+                      cx="72"
+                      cy="72"
+                      r="58"
+                      className="text-slate-800"
+                      strokeWidth="6"
+                      stroke="currentColor"
+                      fill="transparent"
+                    />
+                    <circle
+                      cx="72"
+                      cy="72"
+                      r="58"
+                      className="text-purple-500 transition-all duration-300 ease-out"
+                      strokeWidth="6"
+                      strokeDasharray={364.4}
+                      strokeDashoffset={364.4 - (synthesisProgress / 100) * 364.4}
+                      strokeLinecap="round"
+                      stroke="currentColor"
+                      fill="transparent"
+                    />
+                  </svg>
+                  {/* Inside circle text */}
+                  <div className="absolute flex flex-col items-center justify-center">
+                    <span className="text-3xl font-extrabold tracking-tight text-white">{synthesisProgress}%</span>
+                    <span className="text-[9px] uppercase tracking-widest text-slate-400 font-mono mt-0.5">PROGRESS</span>
                   </div>
-                  <span className="text-[10px] font-bold font-mono text-[#6b38d4] bg-[#6b38d4]/10 border border-[#6b38d4]/20 px-2.5 py-0.5 rounded-full">
-                    {conceptsList.length} entities found
-                  </span>
                 </div>
 
-                <div className="flex flex-wrap gap-2 pt-2 max-h-48 overflow-y-auto">
-                  {conceptsList.map((concept, idx) => (
-                    <span
-                      key={concept + idx}
-                      className="px-3 py-1.5 bg-white text-slate-700 text-xs font-semibold rounded-full border border-slate-200 flex items-center gap-1.5 shadow-2xs animate-fade-in"
-                    >
-                      <Check className="h-3.5 w-3.5 text-emerald-600" />
-                      {concept}
-                    </span>
-                  ))}
+                <div className="space-y-1 w-full">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-purple-400 font-mono">
+                    {currentStep === "EXTRACTION" && "INGESTION & PARSING"}
+                    {currentStep === "CHUNKING" && "TEXT SEGMENTATION"}
+                    {currentStep === "EMBEDDINGS" && "VECTOR COGNITIVE INDEX"}
+                    {currentStep === "TOPIC_DISCOVERY" && "CONCEPTUAL TOPIC MAPPING"}
+                    {currentStep === "SKELETON" && "ARTICLE STRUCTURE SYNTHESIS"}
+                    {currentStep === "FINISHED" && "SYNTHESIS COMPLETED"}
+                  </h4>
+                  <p className="text-[11px] text-slate-350 truncate max-w-xs font-mono h-4">
+                    {synthesisStatusDetail || "Working..."}
+                  </p>
+                  {currentStep !== "FINISHED" && estTimeRemaining > 0 && (
+                    <p className="text-[10px] text-slate-500 font-mono">
+                      Estimated remaining: <span className="text-slate-300 font-bold">~{estTimeRemaining}s</span>
+                    </p>
+                  )}
                 </div>
               </div>
 
-              {/* Right Column (col-span 1): Progress Checklist */}
-              <div className="md:col-span-1 border border-slate-150 rounded-xl p-5 bg-slate-50/50 flex flex-col justify-between space-y-5">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 font-mono">Live Progress</h4>
-                    <span className="h-2 w-2 rounded-full bg-[#6b38d4] animate-pulse"></span>
-                  </div>
-
-                  {/* Progress Bar */}
-                  <div className="bg-[#6b38d4]/5 p-3 rounded-lg border border-[#6b38d4]/10 space-y-2">
-                    <div className="flex items-center justify-between text-[11px] font-bold font-mono text-slate-700">
-                      <span>Generating</span>
-                      <span>{synthesisProgress}%</span>
-                    </div>
-                    <div className="w-full h-1.5 bg-[#6b38d4]/10 rounded-full overflow-hidden">
-                      <div className="h-full bg-[#6b38d4] transition-all duration-100 ease-out" style={{ width: `${synthesisProgress}%` }}></div>
-                    </div>
-                  </div>
-
-                  {/* Checklist */}
-                  <div className="space-y-3 pt-2 text-xs text-left">
-                    <div className="flex gap-2 items-center text-slate-800">
-                      <Check className="h-4 w-4 text-emerald-650 bg-emerald-100 rounded-full p-0.5 shrink-0" />
-                      <div>
-                        <p className="font-semibold">Text Extracted</p>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2 items-center text-slate-800">
-                      {synthesisProgress > 30 ? (
-                        <Check className="h-4 w-4 text-emerald-650 bg-emerald-100 rounded-full p-0.5 shrink-0" />
-                      ) : (
-                        <Loader2 className="h-4 w-4 text-[#6b38d4] animate-spin shrink-0" />
-                      )}
-                      <div>
-                        <p className={`font-semibold ${synthesisProgress > 30 ? "text-slate-800" : "text-slate-400"}`}>Entities Ingested</p>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2 items-center text-slate-800">
-                      {synthesisProgress > 65 ? (
-                        <Check className="h-4 w-4 text-emerald-650 bg-emerald-100 rounded-full p-0.5 shrink-0" />
-                      ) : synthesisProgress > 30 ? (
-                        <Loader2 className="h-4 w-4 text-[#6b38d4] animate-spin shrink-0" />
-                      ) : (
-                        <span className="h-1.5 w-1.5 rounded-full bg-slate-350 shrink-0 ml-1.5 mr-1" />
-                      )}
-                      <div>
-                        <p className={`font-semibold ${synthesisProgress > 65 ? "text-slate-800" : "text-slate-400"}`}>Relationships Found</p>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2 items-center text-slate-800">
-                      {synthesisProgress >= 100 ? (
-                        <Check className="h-4 w-4 text-emerald-650 bg-emerald-100 rounded-full p-0.5 shrink-0" />
-                      ) : synthesisProgress > 65 ? (
-                        <Loader2 className="h-4 w-4 text-[#6b38d4] animate-spin shrink-0" />
-                      ) : (
-                        <span className="h-1.5 w-1.5 rounded-full bg-slate-350 shrink-0 ml-1.5 mr-1" />
-                      )}
-                      <div>
-                        <p className={`font-semibold ${synthesisProgress >= 100 ? "text-[#6b38d4]" : "text-slate-400"}`}>Generating Pages</p>
-                      </div>
-                    </div>
-                  </div>
+              {/* Right Column: Visual Concept Network Map */}
+              <div className="border border-slate-800 rounded-xl p-5 bg-slate-955/35 flex flex-col justify-between space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 font-mono flex items-center gap-1.5">
+                    <Sparkles className="h-3.5 w-3.5 text-emerald-400" />
+                    Cognitive Concept Linker
+                  </h4>
+                  <span className="text-[9px] font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-900/50 px-2 py-0.5 rounded-full">
+                    {conceptsList.length} nodes mapped
+                  </span>
                 </div>
+
+                {/* Network Map area */}
+                <div className="relative w-full h-[180px] bg-slate-950/80 border border-slate-850 rounded-lg overflow-hidden">
+                  <svg className="absolute inset-0 w-full h-full pointer-events-none">
+                    {/* Background grid */}
+                    <defs>
+                      <pattern id="grid" width="16" height="16" patternUnits="userSpaceOnUse">
+                        <path d="M 16 0 L 0 0 0 16" fill="none" stroke="rgba(51, 65, 85, 0.15)" strokeWidth="1" />
+                      </pattern>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#grid)" />
+                    {/* Animated connections */}
+                    <path
+                      d="M 50,44 L 148,33 M 148,33 L 99,99 M 99,99 L 44,165 M 44,165 L 165,154 M 99,99 L 165,154 M 50,44 L 99,99"
+                      className="stroke-purple-500/20 stroke-[1.5]"
+                      strokeDasharray="4,4"
+                    />
+                    <path
+                      d="M 50,44 L 99,99 M 99,99 L 165,154"
+                      className="stroke-emerald-500/30 stroke-[2] animate-pulse"
+                      strokeDasharray="6,6"
+                      style={{ animationDuration: '3s' }}
+                    />
+                  </svg>
+                  {/* Floating concepts nodes */}
+                  {conceptsList.slice(0, 6).map((concept, idx) => {
+                    const pos = [
+                      { x: "20%", y: "25%" },
+                      { x: "75%", y: "20%" },
+                      { x: "50%", y: "55%" },
+                      { x: "25%", y: "80%" },
+                      { x: "75%", y: "75%" },
+                      { x: "50%", y: "15%" }
+                    ][idx] || { x: "50%", y: "50%" }
+                    return (
+                      <div
+                        key={concept + idx}
+                        className="absolute transform -translate-x-1/2 -translate-y-1/2 px-2.5 py-1 bg-slate-900/90 border border-purple-500/30 text-purple-200 text-[9px] font-semibold rounded-md shadow-lg backdrop-blur-xs flex items-center gap-1.5 animate-bounce-slow"
+                        style={{
+                          left: pos.x,
+                          top: pos.y,
+                          animationDelay: `${idx * 0.4}s`,
+                          animationDuration: '5s'
+                        }}
+                      >
+                        <div className="w-1 h-1 rounded-full bg-purple-400 animate-ping" />
+                        {concept}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Scrolling Console Terminal */}
+            <div className="bg-black/90 border border-slate-800 rounded-xl p-4 flex flex-col gap-1.5 font-mono text-[10px] text-slate-350">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-1.5 mb-1 text-slate-400">
+                <span>SYSTEM INSTRUMENTATION LOGGER</span>
+                <span className="animate-pulse flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> ONLINE
+                </span>
+              </div>
+              <div className="h-32 overflow-y-auto space-y-1 scrollbar-thin scrollbar-thumb-slate-800 pr-1 flex flex-col">
+                {consoleLogs.map((log, index) => (
+                  <div key={index} className="leading-relaxed whitespace-pre-wrap break-all text-left">
+                    <span className="text-[#6b38d4] font-semibold">&gt;&gt;</span> {log}
+                  </div>
+                ))}
+                <div ref={terminalEndRef} />
               </div>
             </div>
           </div>
@@ -916,6 +1148,19 @@ export default function SourcesView({ username, wikiSlug, wikiId, initialDocumen
         }
         .z-55 {
           z-index: 55;
+        }
+        @keyframes bounceSlow {
+          0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+          50% { transform: translate(-50%, -50%) translateY(-6px); }
+        }
+        .animate-bounce-slow {
+          animation: bounceSlow 5s ease-in-out infinite;
+        }
+        .bg-slate-955\/35 {
+          background-color: rgba(15, 23, 42, 0.35);
+        }
+        .bg-slate-955\/85 {
+          background-color: rgba(15, 23, 42, 0.85);
         }
       `}</style>
     </div>

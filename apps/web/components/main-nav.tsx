@@ -12,10 +12,10 @@ export function MainNav({ username }: { username: string | null }) {
           instant.wiki
         </span>
       </CustomLink>
-      <nav className="flex items-center gap-1.5 sm:gap-2 text-sm font-semibold text-slate-600 font-sans">
+      <nav className="flex items-center gap-1.5 sm:gap-2 text-sm font-semibold text-slate-650 dark:text-zinc-400 font-sans">
         <CustomLink 
           href="/" 
-          className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl hover:bg-[#6b38d4]/5 hover:text-[#6b38d4] transition-all duration-200"
+          className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl hover:bg-[#6b38d4]/5 hover:text-[#6b38d4] dark:hover:bg-purple-500/10 dark:hover:text-purple-400 transition-all duration-200"
         >
           Dashboard
         </CustomLink>
@@ -23,13 +23,13 @@ export function MainNav({ username }: { username: string | null }) {
           <>
             <CustomLink 
               href="/workspaces" 
-              className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl hover:bg-[#6b38d4]/5 hover:text-[#6b38d4] transition-all duration-200"
+              className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl hover:bg-[#6b38d4]/5 hover:text-[#6b38d4] dark:hover:bg-purple-500/10 dark:hover:text-purple-400 transition-all duration-200"
             >
               Workspaces
             </CustomLink>
             <CustomLink 
               href={`/u/${username}`} 
-              className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl hover:bg-[#6b38d4]/5 hover:text-[#6b38d4] transition-all duration-200"
+              className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl hover:bg-[#6b38d4]/5 hover:text-[#6b38d4] dark:hover:bg-purple-500/10 dark:hover:text-purple-400 transition-all duration-200"
             >
               Profile
             </CustomLink>

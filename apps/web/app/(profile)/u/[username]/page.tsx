@@ -52,16 +52,16 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   const isOwner = session?.user?.email === dbUser.email
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAFAF8] text-[#1A1C1B]">
+    <div className="min-h-screen flex flex-col bg-[#FAFAF8] dark:bg-zinc-950 text-[#1A1C1B] dark:text-zinc-100">
       <Header />
       
       <main className="flex-1 py-12 max-w-md mx-auto px-6 w-full flex flex-col justify-start">
         <div className="space-y-6">
           <div className="text-center space-y-1">
-            <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">
+            <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
               User Profile
             </h1>
-            <p className="text-xs text-slate-500 font-mono">
+            <p className="text-xs text-slate-500 dark:text-zinc-400 font-mono">
               Manage your personal identity credentials
             </p>
           </div>

@@ -35,6 +35,50 @@ function calculateHash(buffer: Buffer): string {
 
 export const dynamic = "force-dynamic"
 
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ wiki_id: string }> }
+) {
+  try {
+    const { wiki_id } = await params
+    const { searchParams } = new URL(request.url)
+    const documentId = searchParams.get("documentId")
+
+    if (!documentId) {
+      return Response.json({ error: "Missing documentId" }, { status: 400 })
+    }
+
+    // Query chunk references for this document
+    const { data: chunkRefs, error } = await supabase
+      .from("page_chunk_references")
+      .select(`
+        chunk_id,
+        page_id,
+        wiki_pages!inner (title, slug, wiki_id),
+        document_chunks!inner (document_id, page_number, content)
+      `)
+      .eq("document_chunks.document_id", documentId)
+      .eq("wiki_pages.wiki_id", wiki_id)
+
+    if (error) throw error
+
+    // Format output
+    const citations = (chunkRefs || []).map((row: any) => ({
+      chunk_id: row.chunk_id,
+      page_id: row.page_id,
+      page_title: row.wiki_pages?.title || "Unknown Page",
+      page_slug: row.wiki_pages?.slug || "",
+      page_number: row.document_chunks?.page_number || 1,
+      content: row.document_chunks?.content || ""
+    }))
+
+    return Response.json({ citations })
+  } catch (err: any) {
+    console.error("Error fetching document citations:", err)
+    return Response.json({ error: err.message || "Server Error" }, { status: 500 })
+  }
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ wiki_id: string }> }
@@ -278,11 +322,15 @@ export async function POST(
   }
 }
 
-export async function DELETE(request: NextRequest) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ wiki_id: string }> }
+) {
   try {
+    const { wiki_id } = await params
     const session = await auth()
     if (!session?.user) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 })
+      return Response.json({ error: "Unauthorized session" }, { status: 401 })
     }
 
     const { docId } = await request.json()
@@ -290,10 +338,140 @@ export async function DELETE(request: NextRequest) {
       return Response.json({ error: "No document ID provided" }, { status: 400 })
     }
 
-    await DocumentRepository.deleteDocument(docId)
+    // 1. Fetch document and verify existence
+    const { data: document, error: docErr } = await supabase
+      .from("documents")
+      .select("*")
+      .eq("id", docId)
+      .maybeSingle()
+
+    if (docErr) {
+      console.error("Error fetching document:", docErr)
+      return Response.json({ error: "Database error fetching document." }, { status: 500 })
+    }
+
+    if (!document) {
+      return Response.json({ error: "Document not found." }, { status: 404 })
+    }
+
+    if (document.wiki_id !== wiki_id) {
+      return Response.json({ error: "Document does not belong to this wiki." }, { status: 400 })
+    }
+
+    // 2. Fetch the wiki properties to verify ownership
+    const { data: wiki, error: wikiErr } = await supabase
+      .from("wikis")
+      .select("owner_id")
+      .eq("id", wiki_id)
+      .maybeSingle()
+
+    if (wikiErr || !wiki) {
+      console.error("Error fetching wiki for document deletion:", wikiErr)
+      return Response.json({ error: "Wiki not found or database error." }, { status: 404 })
+    }
+
+    // 3. Resolve authenticated user details to check owner ID
+    const { data: dbUser, error: userErr } = await supabase
+      .from("users")
+      .select("id")
+      .eq("email", session.user.email)
+      .maybeSingle()
+
+    if (userErr || !dbUser) {
+      console.error("Error fetching db user during document deletion:", userErr)
+      return Response.json({ error: "Could not resolve user ownership profile." }, { status: 403 })
+    }
+
+    if (wiki.owner_id !== dbUser.id) {
+      return Response.json({ error: "Forbidden. You do not own this wiki." }, { status: 403 })
+    }
+
+    // 4. Purge Files from Supabase Storage
+    try {
+      // 4a. Check if the PDF/TXT/MD storage path is shared by other document entries (deduplication)
+      if (document.storage_path && !document.storage_path.startsWith("mock-bucket/")) {
+        const { count, error: countErr } = await supabase
+          .from("documents")
+          .select("*", { count: "exact", head: true })
+          .eq("storage_path", document.storage_path)
+
+        if (!countErr && (count === null || count <= 1)) {
+          // No other documents use this file, safe to delete
+          const { error: pdfStorageErr } = await supabase.storage
+            .from("documents")
+            .remove([document.storage_path])
+          if (pdfStorageErr) {
+            console.warn("Non-fatal: Error deleting PDF file from storage:", pdfStorageErr)
+          }
+        }
+      }
+
+      // 4b. Collect related cropped figure images and delete them from storage
+      const { data: images, error: imagesErr } = await supabase
+        .from("document_images")
+        .select("storage_path")
+        .eq("document_id", docId)
+
+      if (!imagesErr && images && images.length > 0) {
+        const imgPaths = images
+          .map((img) => img.storage_path)
+          .filter((path) => path && !path.startsWith("mock-bucket/"))
+
+        if (imgPaths.length > 0) {
+          const { error: imgStorageErr } = await supabase.storage
+            .from("documents")
+            .remove(imgPaths)
+          if (imgStorageErr) {
+            console.warn("Non-fatal: Error deleting image files from storage:", imgStorageErr)
+          }
+        }
+      }
+    } catch (storageErr) {
+      console.error("Non-fatal: Supabase storage purge exception:", storageErr)
+    }
+
+    // 5. Database Manual Cascades in order (child first)
+    // 5a. Get chunk IDs
+    const { data: chunks, error: chunksErr } = await supabase
+      .from("document_chunks")
+      .select("id")
+      .eq("document_id", docId)
+
+    if (!chunksErr && chunks && chunks.length > 0) {
+      const chunkIds = chunks.map((c) => c.id)
+      
+      // Delete chunk embeddings
+      await supabase.from("chunk_embeddings").delete().in("chunk_id", chunkIds)
+      
+      // Delete page chunk references
+      await supabase.from("page_chunk_references").delete().in("chunk_id", chunkIds)
+    }
+
+    // 5b. Delete wiki page citations
+    await supabase.from("wiki_page_citations").delete().eq("document_id", docId)
+
+    // 5c. Delete document images
+    await supabase.from("document_images").delete().eq("document_id", docId)
+
+    // 5d. Delete document chunks
+    await supabase.from("document_chunks").delete().eq("document_id", docId)
+
+    // 5e. Delete core document record
+    const { error: deleteDocErr } = await supabase
+      .from("documents")
+      .delete()
+      .eq("id", docId)
+
+    if (deleteDocErr) {
+      console.error("Error deleting document record:", deleteDocErr)
+      throw deleteDocErr
+    }
+
     return Response.json({ success: true })
+
   } catch (err: any) {
     console.error("Error deleting document:", err)
     return Response.json({ error: err.message || "Server Error" }, { status: 500 })
   }
 }
+

@@ -42,16 +42,22 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
   if (ownerUser) {
     try {
-      wiki = await WikiRepository.fetchWikiBySlug(ownerUser.id, wiki_slug)
+      wiki = await WikiRepository.getOrCreateWikiBySlug(ownerUser.id, wiki_slug)
+      if (wiki.id === "00000000-0000-0000-0000-000000000000") {
+        isMocked = true
+      }
     } catch (dbErr: any) {
       if (dbErr?.code === "42P01") isMocked = true
     }
   }
 
   if (!wiki) {
+    const displayTitle = wiki_slug
+      .replace(/-+/g, " ")
+      .replace(/\b\w/g, (char) => char.toUpperCase())
     wiki = {
-      id: "mock-wiki-id",
-      title: "Machine Learning Atlas",
+      id: "00000000-0000-0000-0000-000000000000",
+      title: displayTitle || "Wiki Database",
       slug: wiki_slug,
     }
     isMocked = true
@@ -69,66 +75,59 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
   // Fallback mock pages if not found/mocked
   if (!page && isMocked) {
+    const displayTitle = wiki_slug
+      .replace(/-+/g, " ")
+      .replace(/\b\w/g, (char) => char.toUpperCase())
+    const slugify = (text: string) => text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
+
+    const rootSlug = slugify(`introduction-to-${wiki_slug}`)
+    const coreSlug = slugify(`${wiki_slug}-core-principles`)
+    const methodSlug = slugify(`${wiki_slug}-methodology`)
+
     const mockDetails: Record<string, any> = {
-      "foundations-of-data-operations": {
+      [rootSlug]: {
         id: "mock-page-1",
         wiki_id: wiki.id,
         parent_page_id: null,
-        slug: "foundations-of-data-operations",
-        title: "Foundations of Data Operations",
-        summary: "Introductory framework, cleaning methods, and data ingestion architectures.",
+        slug: rootSlug,
+        title: `Introduction to ${displayTitle}`,
+        summary: `Foundational overview, scope, and objectives of the ${displayTitle} workspace.`,
         body: `
-### Overview of Data Preprocessing
+### Overview of ${displayTitle}
 
-Before any machine learning model can be trained, raw data must be collected, parsed, and cleaned. In practice, real-world data is notoriously noisy, incomplete, and inconsistent.
-
-### Ingestion Pipelines
-
-Data operations (DataOps) focuses on building reproducible, version-controlled pipelines.
-
-### Data Cleaning Methodologies
-
-A core component is cleaning dataset coordinates [1] to ensure accuracy.
+Before diving deep into ${displayTitle}, it is important to establish the core objectives and scope. This workspace serves as a structured repository for all relevant documentation, analysis, and metadata.
 `,
         page_type: "ROOT",
         generation_status: "GENERATED",
         confidence_score: 0.98
       },
-      "core-algorithmic-frameworks": {
+      [coreSlug]: {
         id: "mock-page-2",
         wiki_id: wiki.id,
         parent_page_id: "mock-page-1",
-        slug: "core-algorithmic-frameworks",
-        title: "Core Algorithmic Frameworks",
-        summary: "Analyzing optimization gradients, neural layer dimensions, and validation splits.",
+        slug: coreSlug,
+        title: `${displayTitle} Core Principles`,
+        summary: `Analyzing key concepts, terminology, and structural models in ${displayTitle}.`,
         body: `
-### Mathematical Optimization
+### Key Concepts
 
-Modern neural networks learn by adjusting weights to minimize cost functions.
-
-### Gradient Descent Optimization
-
-Gradient descent optimization is the primary training engine [2] for modern architectures.
+This section covers the core principles, terminology, and key concepts that form the basis of **${displayTitle}**.
 `,
         page_type: "TOPIC",
         generation_status: "GENERATED",
         confidence_score: 0.94
       },
-      "deployment-vector-indexing": {
+      [methodSlug]: {
         id: "mock-page-3",
         wiki_id: wiki.id,
         parent_page_id: "mock-page-1",
-        slug: "deployment-vector-indexing",
-        title: "Deployment & Vector Indexing",
-        summary: "Scaling vector databases, configuring cosine indices, and microservice APIs.",
+        slug: methodSlug,
+        title: `${displayTitle} Methodology`,
+        summary: `Practical applications, processes, and standard workflows for ${displayTitle}.`,
         body: `
-### Scaling ML Workloads
+### Methodology & Implementation
 
-Once models are trained, they must be deployed as scalable services.
-
-### Vector Databases and Embedding Search
-
-Vector databases represent a class of storage engines specifically tuned for high-dimensional cosine similarity operations [3].
+This section details the practical applications, implementation procedures, and standard workflows of **${displayTitle}**.
 `,
         page_type: "TOPIC",
         generation_status: "GENERATED",
@@ -152,6 +151,99 @@ Vector databases represent a class of storage engines specifically tuned for hig
     }
   }
 
+  // 5. Fetch Citations, Chunk References, Images, Backlinks and Page Links on the server
+  let initialCitations: any[] = []
+  let initialImages: any[] = []
+  let initialChunkReferences: any[] = []
+  let initialBacklinks: any[] = []
+  let pageLinks: any[] = []
+
+  if (page && !isMocked) {
+    try {
+      const page_id = page.id
+      initialCitations = await WikiGeneratorRepository.fetchPageCitations(page_id)
+      initialChunkReferences = await WikiGeneratorRepository.fetchPageChunkReferences(page_id)
+      
+      const processedPageKeys = new Set<string>()
+      for (const ref of initialChunkReferences) {
+        const key = `${ref.document_id}-${ref.page_number}`
+        if (processedPageKeys.has(key)) continue
+        processedPageKeys.add(key)
+
+        const pageImages = await WikiGeneratorRepository.fetchImagesByPageNumber(
+          ref.document_id,
+          ref.page_number
+        )
+        for (const img of pageImages) {
+          initialImages.push({
+            ...img,
+            sourceFilename: ref.filename
+          })
+        }
+      }
+
+      for (const cit of initialCitations) {
+        let filename = "Source Document"
+        const { data: doc } = await supabase
+          .from("documents")
+          .select("filename")
+          .eq("id", cit.document_id)
+          .maybeSingle()
+        if (doc) {
+          filename = doc.filename
+        }
+        cit.sourceName = filename
+      }
+
+      const { data: backlinksData } = await supabase
+        .from("page_links")
+        .select("source_page_id, link_type")
+        .eq("target_page_id", page_id)
+      
+      initialBacklinks = backlinksData || []
+
+      const { data: linksData } = await supabase
+        .from("page_links")
+        .select("source_page_id, target_page_id")
+        .eq("wiki_id", wiki.id)
+      pageLinks = linksData || []
+    } catch (err) {
+      console.error("Error fetching page assets on server:", err)
+    }
+  } else if (isMocked && page) {
+    // Provide nice mock values for the Sandbox Mock Active state
+    initialBacklinks = [
+      { source_page_id: "mock-page-1", link_type: "internal" }
+    ].filter(bl => bl.source_page_id !== page.id)
+
+    initialCitations = [
+      {
+        id: "mock-cit-1",
+        page_id: page.id,
+        document_id: "mock-doc-1",
+        page_number: 3,
+        highlight: "This is a highlighted fact from the mock document",
+        context: "The context of the document details how the system behaves. This is a highlighted fact from the mock document which is very important.",
+        sourceName: "foundation_spec.pdf"
+      }
+    ]
+
+    initialChunkReferences = [
+      {
+        chunk_id: "mock-chunk-1",
+        document_id: "mock-doc-1",
+        filename: "foundation_spec.pdf",
+        page_number: 3,
+        content: "This is a highlighted fact from the mock document which is very important."
+      }
+    ]
+
+    pageLinks = [
+      { source_page_id: "mock-page-1", target_page_id: "mock-page-2" },
+      { source_page_id: "mock-page-1", target_page_id: "mock-page-3" }
+    ]
+  }
+
   return (
     <ArticleView
       username={username}
@@ -159,6 +251,11 @@ Vector databases represent a class of storage engines specifically tuned for hig
       wikiId={wiki.id}
       initialPage={page}
       allPages={allPages}
+      initialCitations={initialCitations}
+      initialImages={initialImages}
+      initialChunkReferences={initialChunkReferences}
+      initialBacklinks={initialBacklinks}
+      pageLinks={pageLinks}
     />
   )
 }

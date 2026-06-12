@@ -112,6 +112,7 @@ module.exports = {
       },
       fontFamily: {
         sans: ["var(--font-geist-sans)", "sans-serif"],
+        serif: ["var(--font-geist-sans)", "sans-serif"],
         mono: ["var(--font-geist-mono)", "monospace"],
         'display-lg': ["var(--font-geist-sans)", "sans-serif"],
         'headline-md': ["var(--font-geist-sans)", "sans-serif"],

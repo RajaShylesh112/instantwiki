@@ -1,29 +1,26 @@
+import React from "react"
 import { auth } from "auth"
 import { notFound } from "next/navigation"
 import { createClient } from "@supabase/supabase-js"
-import { WikiRepository, Wiki } from "@/lib/repositories/wiki"
+import { WikiRepository } from "@/lib/repositories/wiki"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import {
-  BookOpen,
-  Calendar,
   Lock,
   Globe,
   EyeOff,
-  Plus,
-  ArrowRight,
-  Database,
-  User,
-  Share2,
-  FileText,
-  Network,
-  Bookmark,
-  Sparkles,
-  Check,
+  Network
 } from "lucide-react"
 import WikiSearch from "./wiki-search"
 import { WikiGeneratorRepository } from "@/lib/repositories/wiki-generator"
 import { DocumentRepository } from "@/lib/repositories/document"
+import { renderMarkdownBody } from "@/lib/markdown-renderer"
+
+// Import dashboard components
+import TopicTree from "@/components/wiki/topic-tree"
+import SourceCoverage from "@/components/wiki/source-coverage"
+import GraphPreview from "@/components/wiki/graph-preview"
+import LearningPath from "@/components/wiki/learning-path"
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -57,12 +54,15 @@ export default async function WikiPage({ params }: WikiPageProps) {
   }
 
   // 2. Fetch Wiki from Supabase or fallback to mock
-  let wiki: Wiki | null = null
+  let wiki: any = null
   let isMocked = false
 
   if (ownerUser) {
     try {
-      wiki = await WikiRepository.fetchWikiBySlug(ownerUser.id, wiki_slug)
+      wiki = await WikiRepository.getOrCreateWikiBySlug(ownerUser.id, wiki_slug)
+      if (wiki.id === "00000000-0000-0000-0000-000000000000") {
+        isMocked = true
+      }
     } catch (dbErr: any) {
       if (dbErr?.code === "42P01") {
         isMocked = true
@@ -71,7 +71,7 @@ export default async function WikiPage({ params }: WikiPageProps) {
       }
     }
   } else {
-    if (username.toLowerCase() === "raja" || username.toLowerCase() === "user") {
+    if (username.toLowerCase() === "raja" || username.toLowerCase() === "user" || username.toLowerCase() === "rajashylesh") {
       isMocked = true
     }
   }
@@ -83,11 +83,11 @@ export default async function WikiPage({ params }: WikiPageProps) {
       .replace(/\b\w/g, (char) => char.toUpperCase())
     
     wiki = {
-      id: "mock-wiki-id",
-      owner_id: ownerUser?.id || "mock-owner-id",
-      title: displayTitle || "Machine Learning Atlas",
+      id: "00000000-0000-0000-0000-000000000000",
+      owner_id: ownerUser?.id || "00000000-0000-0000-0000-000000000000",
+      title: displayTitle || "Knowledge Atlas",
       slug: wiki_slug,
-      description: `A comprehensive knowledge directory and structured handbook mapping concepts, algorithms, and references in ${displayTitle || "Machine Learning"}.`,
+      description: `A comprehensive knowledge directory and structured handbook mapping concepts, algorithms, and references in ${displayTitle || "this workspace"}.`,
       visibility: "PUBLIC",
       status: "READY",
       page_limit: 25,
@@ -112,7 +112,7 @@ export default async function WikiPage({ params }: WikiPageProps) {
     day: "numeric",
   })
 
-  // 3. Fetch Documents
+  // 4. Fetch Documents
   let documents: any[] = []
   if (wiki?.id) {
     try {
@@ -122,7 +122,7 @@ export default async function WikiPage({ params }: WikiPageProps) {
     }
   }
 
-  // 4. Fetch Pages
+  // 5. Fetch Pages
   let wikiPages: any[] = []
   if (wiki?.id) {
     try {
@@ -132,296 +132,274 @@ export default async function WikiPage({ params }: WikiPageProps) {
     }
   }
 
-  // Fallback if empty and isMocked
-  if (wikiPages.length === 0 && isMocked) {
-    wikiPages = [
-      {
-        slug: "foundations-of-data-operations",
-        title: "Foundations of Data Operations",
-        summary: "Introductory framework, cleaning methods, and data ingestion architectures.",
-        page_type: "ROOT",
-        generation_status: "GENERATED",
-        confidence_score: 0.98
-      },
-      {
-        slug: "core-algorithmic-frameworks",
-        title: "Core Algorithmic Frameworks",
-        summary: "Analyzing optimization gradients, neural layer dimensions, and validation splits.",
-        page_type: "TOPIC",
-        generation_status: "GENERATED",
-        confidence_score: 0.94
-      },
-      {
-        slug: "deployment-vector-indexing",
-        title: "Deployment & Vector Indexing",
-        summary: "Scaling vector databases, configuring cosine indices, and microservice APIs.",
-        page_type: "TOPIC",
-        generation_status: "GENERATED",
-        confidence_score: 0.89
-      }
-    ]
+  // 6. Fetch Citations
+  let citations: any[] = []
+  if (wiki?.id) {
+    try {
+      const { data } = await supabase
+        .from("wiki_page_citations")
+        .select("page_id, document_id")
+      citations = data || []
+    } catch (e) {
+      console.warn("Failed to fetch citations:", e)
+    }
   }
 
-  const mainArticles = wikiPages
+  // 7. Fetch Page Links
+  let pageLinks: any[] = []
+  if (wiki?.id) {
+    try {
+      const { data } = await supabase
+        .from("page_links")
+        .select("source_page_id, target_page_id")
+        .eq("wiki_id", wiki.id)
+      pageLinks = data || []
+    } catch (e) {
+      console.warn("Failed to fetch page links:", e)
+    }
+  }
+
+  // 8. Fetch Chunks and Calculate Source Coverage
+  let totalChunks = 0
+  let sourceCoverageList: { filename: string; percentage: number }[] = []
+  if (wiki?.id && documents.length > 0) {
+    try {
+      const docIds = documents.map(d => d.id)
+      const { data: chunkData } = await supabase
+        .from("document_chunks")
+        .select("document_id")
+        .in("document_id", docIds)
+
+      totalChunks = chunkData?.length || 0
+      const docChunkCounts: Record<string, number> = {}
+      chunkData?.forEach(c => {
+        docChunkCounts[c.document_id] = (docChunkCounts[c.document_id] || 0) + 1
+      })
+
+      sourceCoverageList = documents.map(doc => {
+        const count = docChunkCounts[doc.id] || 0
+        const pct = totalChunks > 0 ? Math.round((count / totalChunks) * 100) : 0
+        return {
+          filename: doc.filename,
+          percentage: pct
+        }
+      }).sort((a, b) => b.percentage - a.percentage)
+    } catch (e) {
+      console.warn("Failed to fetch chunks for source coverage:", e)
+    }
+  }
+
+  // Calculate average confidence score safely
+  const avgConfidence = wikiPages.length > 0
+    ? Math.round(
+        (wikiPages.reduce((acc, p) => {
+          const val = p.confidence_score || 0;
+          return acc + (val > 1 ? val / 100 : val);
+        }, 0) / wikiPages.length) * 100
+      )
+    : 92
+
+  const rootPage = wikiPages.find(p => p.page_type === "ROOT")
+
+  // 9. Generate Suggested Learning Path (Reading Order) from hierarchy
+  const learningPath: { title: string; slug: string }[] = []
+  if (rootPage) {
+    const queue = [rootPage]
+    const visited = new Set<string>()
+    
+    while (queue.length > 0) {
+      const current = queue.shift()!
+      if (visited.has(current.id)) continue
+      visited.add(current.id)
+      
+      if (current.page_type !== "ROOT") {
+        learningPath.push({ title: current.title, slug: current.slug })
+      }
+      
+      const children = wikiPages
+        .filter(p => p.parent_page_id === current.id)
+        .sort((a, b) => a.title.localeCompare(b.title))
+        
+      queue.push(...children)
+    }
+  }
 
   return (
-    <div className="relative flex flex-col gap-8 py-8 max-w-6xl mx-auto px-6 font-sans">
+    <div className="relative flex flex-col gap-8 py-8 max-w-[1600px] mx-auto px-6 md:px-12 font-sans text-slate-800 dark:text-zinc-200">
       
       {/* Search Header Container (home-search-header) */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-100">
-        <WikiSearch username={username} wikiSlug={wiki_slug} />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-zinc-800">
+        <WikiSearch 
+          username={username} 
+          wikiSlug={wiki_slug} 
+          wikiPages={wikiPages} 
+          documents={documents} 
+        />
         
         {isMocked && (
-          <div className="text-[11px] font-mono text-amber-600 bg-amber-50 border border-amber-100 rounded px-2.5 py-1 flex items-center gap-1.5 shrink-0 select-none">
+          <div className="text-[11px] font-mono text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/50 rounded px-2.5 py-1 flex items-center gap-1.5 shrink-0 select-none">
             <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse"></span>
             Sandbox Mock Active
           </div>
         )}
       </div>
 
-      {/* Main Grid: Wikipedia Style */}
-      <div className="grid gap-8 lg:grid-cols-3">
-        
-        {/* Main Content Column (Left, Col-span 2) */}
-        <div className="lg:col-span-2 space-y-8">
+      {/* 1. Dashboard Hero Banner (Change 9) */}
+      <div className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-linear-to-br from-white to-slate-50 dark:from-zinc-900 dark:to-zinc-950 p-4 sm:px-6 sm:py-5 space-y-4 shadow-xs relative overflow-hidden">
+        <div className="absolute right-0 top-0 h-32 w-32 bg-purple-50 dark:bg-purple-950/10 rounded-full blur-3xl opacity-60 pointer-events-none"></div>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="space-y-1">
+            <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight sm:text-2xl font-serif">
+              {wiki.title}
+            </h1>
+            <p className="text-[11px] text-slate-500 dark:text-zinc-400 font-mono">
+              Generated from {documents.length} source documents
+            </p>
+          </div>
           
-          {/* Wiki Hero Header */}
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight sm:text-4xl" id="home-hero-title">
-                {wiki.title}
-              </h1>
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 font-mono">
-                <span>From InstantWiki, the structured knowledge hub</span>
-                <span>•</span>
-                <span className="flex items-center gap-1">
-                  {wiki.visibility === "PUBLIC" && <Globe className="h-3.5 w-3.5 text-[#006b5e]" />}
-                  {wiki.visibility === "UNLISTED" && <EyeOff className="h-3.5 w-3.5 text-slate-400" />}
-                  {wiki.visibility === "PRIVATE" && <Lock className="h-3.5 w-3.5 text-red-500" />}
-                  <span className="capitalize">{wiki.visibility.toLowerCase()} Namespace</span>
-                </span>
-              </div>
-            </div>
-
-            {/* Stats row */}
-            <div className="flex gap-4 border-y border-slate-200/60 py-2.5 font-mono text-xs text-slate-500">
-              <div id="home-stat-pages">
-                <span className="font-bold text-slate-800">{documents.length}</span> Sources
-              </div>
-              <span className="text-slate-300">|</span>
-              <div id="home-stat-concepts">
-                <span className="font-bold text-slate-800">{wikiPages.length}</span> Core Chapters
-              </div>
-              <span className="text-slate-300">|</span>
-              <div id="home-stat-relationships">
-                <span className="font-bold text-slate-800">{wikiPages.filter(p => p.parent_page_id).length}</span> Hierarchical Links
-              </div>
-            </div>
+          <div className="flex flex-wrap gap-2 shrink-0">
+            <Link href={`/u/${username}/${wiki_slug}/graph`}>
+              <Button className="bg-[#6b38d4] hover:bg-[#5a2eb3] text-white font-semibold text-[11px] py-1 px-3 h-8 rounded-md transition-colors cursor-pointer">
+                Explore Graph
+              </Button>
+            </Link>
+            <Link href={`/u/${username}/${wiki_slug}/sources`}>
+              <Button variant="outline" className="border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-350 hover:bg-slate-50 dark:hover:bg-zinc-800 font-semibold text-[11px] py-1 px-3 h-8 rounded-md cursor-pointer">
+                View Sources
+              </Button>
+            </Link>
           </div>
-
-          {/* Overview Card */}
-          <div className="rounded-lg border border-slate-150 bg-slate-50/50 p-5 space-y-3">
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-450 font-mono">
-              <Sparkles className="h-3.5 w-3.5 text-[#6b38d4]" />
-              AI Overview Summary
-            </div>
-            <p className="text-base text-slate-700 leading-relaxed font-serif pl-3 border-l-2 border-slate-300 italic" id="home-overview-text">
-              {wiki.description || `This wiki covers computational research, sequence alignments, analysis pipelines, and machine learning models for predictions. Compiled from ${documents.length} core reference documents.`}
-            </p>
-          </div>
-
-          {/* Wikipedia Table of Contents Widget */}
-          <div className="rounded-lg border border-slate-200 bg-white p-5 w-full max-w-sm space-y-3">
-            <div className="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono">
-              Table of Contents
-            </div>
-            <ul className="space-y-2 text-xs font-mono text-[#6b38d4]">
-              <li>
-                <a href="#introduction" className="hover:underline">
-                  1. Introduction
-                </a>
-              </li>
-              <li>
-                <a href="#key-topics" className="hover:underline">
-                  2. Navigable Knowledge Pages
-                </a>
-              </li>
-              <li>
-                <a href="#bibliography" className="hover:underline">
-                  3. Bibliography & Sources
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Section 1: Introduction */}
-          <section id="introduction" className="space-y-3 pt-2">
-            <h2 className="text-lg font-bold text-slate-900 border-b border-slate-200 pb-1.5 tracking-tight">
-              1. Introduction
-            </h2>
-            <p className="text-sm text-slate-600 leading-relaxed font-serif">
-              InstantWiki works by extracting entities, documents, and concepts, converting them automatically into a hyperlinked documentation hub. Each page is a node in the larger knowledge system, enabling semantic exploration. Users can read articles, trace statements to their exact source PDF page via citations, or explore the entire database visually using the interactive relationship graph.
-            </p>
-          </section>
-
-          {/* Section 2: Key Topics Grid */}
-          <section id="key-topics" className="space-y-4 pt-2">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-1.5">
-              <h2 className="text-lg font-bold text-slate-900 tracking-tight">
-                2. Navigable Knowledge Pages
-              </h2>
-              {(isOwner || isMocked) && (
-                <Link href={`/u/${username}/${wiki_slug}/sources`}>
-                  <Button variant="ghost" className="text-[#6b38d4] font-semibold text-xs border border-slate-150 hover:bg-slate-50 h-7 px-2.5 flex items-center gap-1">
-                    <Plus className="h-3.5 w-3.5" /> Add Document
-                  </Button>
-                </Link>
-              )}
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              {mainArticles.map((article) => (
-                <div
-                  key={article.slug}
-                  id={`home-topic-card-${article.slug}`}
-                  className="group flex flex-col justify-between p-4 rounded-lg border border-slate-200 bg-white hover:border-slate-350 hover:shadow-xs transition-all"
-                >
-                  <div className="space-y-2">
-                    <Link
-                      href={`/u/${username}/${wiki_slug}/${article.slug}`}
-                      className="font-bold text-slate-955 hover:text-[#6b38d4] text-sm block transition-colors"
-                    >
-                      {article.title}
-                    </Link>
-                    <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">
-                      {article.summary || "No summary discovered for this page skeleton yet."}
-                    </p>
-                  </div>
-                  <div className="flex items-center justify-between pt-4 mt-auto">
-                    <span className="text-[10px] text-slate-400 font-mono">
-                      {article.generation_status === "GENERATED" ? (
-                        <span className="inline-flex items-center gap-1 text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100 font-bold uppercase tracking-wider text-[9px]">
-                          <Check className="h-2.5 w-2.5" /> {article.page_type}
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100 font-bold uppercase tracking-wider text-[9px] animate-pulse">
-                          Pending Load
-                        </span>
-                      )}
-                    </span>
-                    <Link
-                      href={`/u/${username}/${wiki_slug}/${article.slug}`}
-                      className="text-xs text-[#6b38d4] font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform"
-                    >
-                      Read Article <ArrowRight className="h-3 w-3" />
-                    </Link>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Section 3: Bibliography & Sources */}
-          <section id="bibliography" className="space-y-3 pt-4 border-t border-slate-200">
-            <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider font-mono">
-              3. Sources & References
-            </h2>
-            <ol className="space-y-1.5 text-xs text-slate-500 font-mono list-decimal pl-4">
-              {documents.map((source) => (
-                <li key={source.id} className="hover:text-slate-800 transition-colors">
-                  <Link href={`/u/${username}/${wiki_slug}/sources`} className="hover:underline">
-                    {source.filename}
-                  </Link>{" "}
-                  — {source.source_type} Source ({source.mime_type}).
-                </li>
-              ))}
-              {documents.length === 0 && (
-                <li className="text-slate-400">No source documents uploaded yet.</li>
-              )}
-            </ol>
-          </section>
         </div>
 
-        {/* Sidebar Column: Wikipedia Infobox & SVG Graph Widget */}
-        <div className="space-y-6">
+        {/* Executive stats overview */}
+        <div className="grid grid-cols-3 gap-4 border-t border-slate-200/80 dark:border-zinc-800 pt-4">
+          <div className="text-center md:text-left">
+            <div className="text-lg font-bold text-slate-900 dark:text-white font-mono tracking-tight">{wikiPages.length}</div>
+            <div className="text-[9px] uppercase font-bold text-slate-400 dark:text-zinc-500 tracking-wider font-mono">concepts & pages</div>
+          </div>
+          <div className="text-center md:text-left border-x border-slate-200 dark:border-zinc-800 px-4">
+            <div className="text-lg font-bold text-slate-900 dark:text-white font-mono tracking-tight">{totalChunks || documents.length * 24}</div>
+            <div className="text-[9px] uppercase font-bold text-slate-400 dark:text-zinc-500 tracking-wider font-mono">data chunks</div>
+          </div>
+          <div className="text-center md:text-left">
+            <div className="text-lg font-bold text-slate-900 dark:text-white font-mono tracking-tight">{avgConfidence}%</div>
+            <div className="text-[9px] uppercase font-bold text-slate-400 dark:text-zinc-500 tracking-wider font-mono">confidence index</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Grid Layout */}
+      <div className="grid gap-8 lg:grid-cols-4">
+        
+        {/* Middle Column (Article Content, Col-span 3) */}
+        <div className="lg:col-span-3 space-y-8">
           
+          {/* 2. Wiki Overview (Change 1) */}
+          <section className="space-y-4">
+            <h2 className="text-xl font-bold text-slate-955 dark:text-white tracking-tight font-serif flex items-center gap-2">
+              Wiki Overview
+            </h2>
+            <div className="rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-xs leading-relaxed text-slate-700 dark:text-zinc-300 font-serif text-sm sm:text-base">
+              {rootPage && rootPage.body && rootPage.generation_status === "GENERATED" ? (
+                <div className="space-y-4 markdown-body dark:prose-invert">
+                  {renderMarkdownBody(rootPage.body)}
+                </div>
+              ) : (
+                <p className="italic text-slate-505 dark:text-zinc-400">
+                  {wiki.description || "No overview summary generated yet for this wiki namespace."}
+                </p>
+              )}
+            </div>
+          </section>
+
+          {/* 3. Knowledge Domains (Change 4) */}
+          <section className="space-y-3">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight font-serif">
+              Knowledge Domains
+            </h2>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {wikiPages.filter(p => p.parent_page_id === (rootPage?.id || null)).map(domain => {
+                const children = wikiPages.filter(wp => wp.parent_page_id === domain.id)
+                const docCitations = citations.filter(c => c.page_id === domain.id) || []
+                const uniqueDocs = new Set(docCitations.map(c => c.document_id))
+                return (
+                  <div key={domain.id} className="p-4 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg shadow-xs hover:border-purple-200 dark:hover:border-purple-800 transition-colors flex flex-col justify-between">
+                    <div>
+                      <h3 className="font-bold text-slate-800 dark:text-zinc-200 text-sm font-serif">{domain.title}</h3>
+                      <p className="text-xs text-slate-500 dark:text-zinc-400 line-clamp-2 mt-1.5">{domain.summary || "Core sub-domain cataloged in this wiki."}</p>
+                    </div>
+                    <div className="mt-4 pt-2 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between text-[9px] font-mono text-slate-400 dark:text-zinc-500">
+                      <span>{children.length} subtopics • {uniqueDocs.size} sources</span>
+                      <Link href={`/u/${username}/${wiki_slug}/${domain.slug}`} className="text-purple-650 dark:text-purple-400 font-bold hover:underline">
+                        Explore →
+                      </Link>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </section>
+
+          {/* Collapsible Tree & Reading Path */}
+          <div className="grid gap-6 md:grid-cols-2">
+            <TopicTree pages={wikiPages} username={username} wikiSlug={wiki_slug} />
+            <LearningPath path={learningPath} username={username} wikiSlug={wiki_slug} />
+          </div>
+        </div>
+
+        {/* Right Sidebar Column (Dashboard Widgets, Col-span 1) */}
+        <aside className="space-y-6 lg:col-span-1">
+
+          {/* Concept Network Graph (Change 5) */}
+          <GraphPreview 
+            nodes={wikiPages.map(p => ({ id: p.id, title: p.title, slug: p.slug }))} 
+            links={pageLinks} 
+            username={username}
+            wikiSlug={wiki_slug}
+            activePageId={rootPage?.id}
+          />
+
+          {/* Source Coverage widget (Change 6) */}
+          <SourceCoverage sources={sourceCoverageList} />
+
           {/* Wikipedia Infobox Widget */}
-          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs space-y-4">
-            <div className="text-center font-bold text-slate-900 text-sm border-b border-slate-200 pb-2">
+          <div className="rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-xs space-y-4">
+            <div className="text-center font-bold text-slate-900 dark:text-white text-sm border-b border-slate-200 dark:border-zinc-800 pb-2 font-serif">
               {wiki.title}
             </div>
 
             <table className="w-full text-xs font-mono">
               <tbody>
-                <tr className="border-b border-slate-100">
-                  <td className="py-2 text-slate-500 font-bold w-1/3">Owner</td>
-                  <td className="py-2 text-slate-900 text-right">@{username}</td>
+                <tr className="border-b border-slate-100 dark:border-zinc-800/80">
+                  <td className="py-2 text-slate-500 dark:text-zinc-450 font-bold w-1/3">Owner</td>
+                  <td className="py-2 text-slate-900 dark:text-zinc-200 text-right">@{username}</td>
                 </tr>
-                <tr className="border-b border-slate-100">
-                  <td className="py-2 text-slate-500 font-bold">Visibility</td>
-                  <td className="py-2 text-slate-900 text-right capitalize">
+                <tr className="border-b border-slate-100 dark:border-zinc-800/80">
+                  <td className="py-2 text-slate-500 dark:text-zinc-450 font-bold">Visibility</td>
+                  <td className="py-2 text-slate-900 dark:text-zinc-200 text-right capitalize">
                     {wiki.visibility.toLowerCase()}
                   </td>
                 </tr>
-                <tr className="border-b border-slate-100">
-                  <td className="py-2 text-slate-500 font-bold">Status</td>
-                  <td className="py-2 text-slate-900 text-right">
-                    <span className="inline-flex items-center rounded border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-[9px] font-bold text-emerald-700">
+                <tr className="border-b border-slate-100 dark:border-zinc-800/80">
+                  <td className="py-2 text-slate-500 dark:text-zinc-450 font-bold">Status</td>
+                  <td className="py-2 text-slate-900 dark:text-zinc-200 text-right">
+                    <span className="inline-flex items-center rounded border border-emerald-250 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/30 px-1.5 py-0.5 text-[9px] font-bold text-emerald-700 dark:text-emerald-400">
                       {wiki.status}
                     </span>
                   </td>
                 </tr>
-                <tr className="border-b border-slate-100">
-                  <td className="py-2 text-slate-500 font-bold">Limit</td>
-                  <td className="py-2 text-slate-900 text-right">{wiki.page_limit} pages</td>
+                <tr className="border-b border-slate-100 dark:border-zinc-800/80">
+                  <td className="py-2 text-slate-500 dark:text-zinc-450 font-bold">Limit</td>
+                  <td className="py-2 text-slate-900 dark:text-zinc-200 text-right">{wiki.page_limit} pages</td>
                 </tr>
                 <tr>
-                  <td className="py-2 text-slate-500 font-bold">Created</td>
-                  <td className="py-2 text-slate-800 text-right">{joinDate}</td>
+                  <td className="py-2 text-slate-500 dark:text-zinc-450 font-bold">Created</td>
+                  <td className="py-2 text-slate-850 dark:text-zinc-300 text-right">{joinDate}</td>
                 </tr>
               </tbody>
             </table>
           </div>
-
-          {/* SVG Concept Graph Widget */}
-          <div id="knowledge-nodes" className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono">Concept Graph</span>
-              <Network className="h-4 w-4 text-slate-400" />
-            </div>
-
-            <svg viewBox="0 0 200 180" className="w-full text-slate-800 font-mono">
-              <line x1="100" y1="90" x2="100" y2="30" stroke="#E2E8F0" strokeWidth="1.5" />
-              <line x1="100" y1="90" x2="40" y2="130" stroke="#E2E8F0" strokeWidth="1.5" />
-              <line x1="100" y1="90" x2="160" y2="130" stroke="#E2E8F0" strokeWidth="1.5" />
-
-              {/* Core Node */}
-              <circle cx="100" cy="90" r="14" fill="#f6f2ff" stroke="#6b38d4" strokeWidth="1.5" />
-              <text x="100" y="93" textAnchor="middle" fontSize="6.5" fontWeight="bold" fill="#6b38d4">Atlas</text>
-
-              {/* Ingestion Node */}
-              <circle cx="100" cy="30" r="12" fill="#f0faf7" stroke="#006b5e" strokeWidth="1.5" />
-              <text x="100" y="33" textAnchor="middle" fontSize="6" fill="#006b5e">Ingest</text>
-
-              {/* Extract Node */}
-              <circle cx="40" cy="130" r="12" fill="#f6f2ff" stroke="#6b38d4" strokeWidth="1.5" />
-              <text x="40" y="133" textAnchor="middle" fontSize="6" fill="#6b38d4">Extract</text>
-
-              {/* Entity Node */}
-              <circle cx="160" cy="130" r="12" fill="#FFF7ED" stroke="#EA580C" strokeWidth="1.5" />
-              <text x="160" y="133" textAnchor="middle" fontSize="6" fill="#C2410C">Graph</text>
-            </svg>
-            <div className="text-[10px] text-slate-400 font-mono text-center">
-              Active links: 8 nodes • 7 relationships
-            </div>
-            
-            <Link href={`/u/${username}/${wiki_slug}/graph`} className="block w-full">
-              <Button variant="ghost" className="w-full text-xs text-[#6b38d4] font-semibold border border-slate-150 hover:bg-slate-50 py-1.5 h-8">
-                View Full Interactive Graph
-              </Button>
-            </Link>
-          </div>
-        </div>
+        </aside>
       </div>
     </div>
   )

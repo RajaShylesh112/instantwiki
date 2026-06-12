@@ -1,0 +1,92 @@
+table_name,column_name,data_type,is_nullable
+chunk_embeddings,id,uuid,NO
+chunk_embeddings,chunk_id,uuid,NO
+chunk_embeddings,embedding,USER-DEFINED,NO
+chunk_embeddings,embedding_model,text,NO
+chunk_embeddings,created_at,timestamp with time zone,NO
+document_chunks,id,uuid,NO
+document_chunks,document_id,uuid,NO
+document_chunks,page_number,integer,NO
+document_chunks,content,text,NO
+document_chunks,embedding,USER-DEFINED,YES
+document_chunks,created_at,timestamp with time zone,NO
+document_chunks,chunk_index,integer,NO
+document_chunks,heading,text,YES
+document_chunks,section,text,YES
+document_chunks,chunk_type,text,YES
+document_images,id,uuid,NO
+document_images,document_id,uuid,NO
+document_images,page_number,integer,NO
+document_images,storage_path,text,NO
+document_images,caption,text,YES
+document_images,created_at,timestamp with time zone,NO
+document_images,relevance_score,numeric,NO
+documents,id,uuid,NO
+documents,wiki_id,uuid,NO
+documents,filename,text,NO
+documents,storage_path,text,NO
+documents,content_hash,text,NO
+documents,processing_status,text,NO
+documents,created_at,timestamp with time zone,NO
+documents,updated_at,timestamp with time zone,NO
+documents,source_type,text,NO
+documents,mime_type,text,NO
+page_chunk_references,id,uuid,NO
+page_chunk_references,page_id,uuid,NO
+page_chunk_references,chunk_id,uuid,NO
+page_links,id,uuid,NO
+page_links,wiki_id,uuid,NO
+page_links,source_page_id,uuid,NO
+page_links,target_page_id,uuid,NO
+page_links,link_type,text,YES
+page_links,created_at,timestamp with time zone,NO
+processing_jobs,id,uuid,NO
+processing_jobs,wiki_id,uuid,NO
+processing_jobs,status,text,NO
+processing_jobs,current_step,text,NO
+processing_jobs,started_at,timestamp with time zone,NO
+processing_jobs,finished_at,timestamp with time zone,YES
+processing_jobs,error,text,YES
+users,id,uuid,NO
+users,email,character varying,NO
+users,username,character varying,NO
+users,plan,character varying,NO
+users,created_at,timestamp without time zone,YES
+users,image,text,YES
+users,password_hash,text,YES
+wiki_page_aliases,id,uuid,NO
+wiki_page_aliases,page_id,uuid,NO
+wiki_page_aliases,alias,text,NO
+wiki_page_citations,id,uuid,NO
+wiki_page_citations,page_id,uuid,NO
+wiki_page_citations,document_id,uuid,NO
+wiki_page_citations,page_number,integer,NO
+wiki_page_citations,highlight,text,NO
+wiki_page_citations,context,text,NO
+wiki_page_hierarchy,id,uuid,NO
+wiki_page_hierarchy,wiki_id,uuid,NO
+wiki_page_hierarchy,parent_id,uuid,YES
+wiki_page_hierarchy,child_id,uuid,NO
+wiki_pages,id,uuid,NO
+wiki_pages,wiki_id,uuid,NO
+wiki_pages,slug,text,NO
+wiki_pages,title,text,NO
+wiki_pages,summary,text,YES
+wiki_pages,body,text,YES
+wiki_pages,created_at,timestamp with time zone,NO
+wiki_pages,updated_at,timestamp with time zone,NO
+wiki_pages,parent_page_id,uuid,YES
+wiki_pages,page_type,text,NO
+wiki_pages,generation_status,text,NO
+wiki_pages,confidence_score,numeric,YES
+wikis,id,uuid,NO
+wikis,owner_id,uuid,NO
+wikis,title,character varying,NO
+wikis,slug,character varying,NO
+wikis,description,text,YES
+wikis,visibility,character varying,NO
+wikis,status,character varying,NO
+wikis,page_limit,integer,YES
+wikis,page_count,integer,YES
+wikis,created_at,timestamp without time zone,YES
+wikis,updated_at,timestamp without time zone,YES

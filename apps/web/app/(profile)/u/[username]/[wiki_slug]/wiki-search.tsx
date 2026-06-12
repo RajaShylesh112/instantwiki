@@ -3,11 +3,12 @@
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Search, FileText, BookOpen, Database, X } from "lucide-react"
-import { mockArticles, mockSources } from "./mock-data"
 
 interface WikiSearchProps {
   username: string
   wikiSlug: string
+  wikiPages?: any[]
+  documents?: any[]
 }
 
 interface SearchItem {
@@ -18,33 +19,33 @@ interface SearchItem {
   subtitle?: string
 }
 
-export default function WikiSearch({ username, wikiSlug }: WikiSearchProps) {
+export default function WikiSearch({ username, wikiSlug, wikiPages = [], documents = [] }: WikiSearchProps) {
   const router = useRouter()
   const [query, setQuery] = useState("")
   const [isOpen, setIsOpen] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState(-1)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Generate searchable index from mock data
+  // Generate searchable index from real pages and documents
   const searchItems: SearchItem[] = [
-    ...Object.values(mockArticles).map(
+    ...wikiPages.map(
       (art) =>
         ({
           id: `art-${art.slug}`,
           title: art.title,
           slug: art.slug,
           type: "page",
-          subtitle: art.summary,
+          subtitle: art.summary || undefined,
         } as SearchItem)
     ),
-    ...mockSources.map(
+    ...documents.map(
       (src) =>
         ({
           id: `src-${src.id}`,
-          title: src.name,
+          title: src.filename,
           slug: "sources", // redirect to sources page
           type: "source",
-          subtitle: `${src.pagesCount} pages • ${src.conceptsCount} concepts`,
+          subtitle: `${src.mime_type.toUpperCase()} Source`,
         } as SearchItem)
     ),
   ]
@@ -123,7 +124,7 @@ export default function WikiSearch({ username, wikiSlug }: WikiSearchProps) {
           }}
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
-          className="w-full pl-9 pr-9 py-2 text-sm text-slate-900 placeholder-slate-400 bg-white border border-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#6b38d4] focus:border-[#6b38d4] font-mono transition-shadow shadow-xs hover:border-slate-300"
+          className="w-full pl-9 pr-9 py-2 text-sm text-slate-900 dark:text-zinc-100 placeholder-slate-400 dark:placeholder-zinc-500 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-md focus:outline-none focus:ring-1 focus:ring-[#6b38d4] focus:border-[#6b38d4] font-mono transition-shadow shadow-xs hover:border-slate-300 dark:hover:border-zinc-700"
           id="home-search-input"
         />
         {query && (
@@ -132,7 +133,7 @@ export default function WikiSearch({ username, wikiSlug }: WikiSearchProps) {
               setQuery("")
               setSelectedIndex(-1)
             }}
-            className="absolute right-3 p-0.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600"
+            className="absolute right-3 p-0.5 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-850 text-slate-400 dark:text-zinc-550 hover:text-slate-600 dark:hover:text-zinc-350 cursor-pointer"
           >
             <X className="h-3.5 w-3.5" />
           </button>
@@ -140,16 +141,16 @@ export default function WikiSearch({ username, wikiSlug }: WikiSearchProps) {
       </div>
 
       {isOpen && query.trim() && (
-        <div className="absolute left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden max-h-96 overflow-y-auto">
+        <div className="absolute left-0 right-0 mt-1.5 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg shadow-lg overflow-hidden max-h-96 overflow-y-auto z-40">
           {filteredItems.length === 0 ? (
-            <div className="p-4 text-center text-xs text-slate-450 font-mono">
+            <div className="p-4 text-center text-xs text-slate-450 dark:text-zinc-500 font-mono">
               No results found for "{query}"
             </div>
           ) : (
-            <div className="py-1.5 divide-y divide-slate-100">
+            <div className="py-1.5 divide-y divide-slate-100 dark:divide-zinc-800">
               {pages.length > 0 && (
                 <div className="py-1">
-                  <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">
+                  <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 font-mono">
                     Concepts & Pages
                   </div>
                   {pages.map((item) => {
@@ -160,15 +161,15 @@ export default function WikiSearch({ username, wikiSlug }: WikiSearchProps) {
                         key={item.id}
                         onClick={() => selectItem(item)}
                         onMouseEnter={() => setSelectedIndex(globalIdx)}
-                        className={`w-full text-left px-3 py-2 flex items-start gap-2.5 transition-colors ${
-                          isSelected ? "bg-slate-50 text-slate-900" : "text-slate-700"
+                        className={`w-full text-left px-3 py-2 flex items-start gap-2.5 transition-colors cursor-pointer ${
+                          isSelected ? "bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100" : "text-slate-705 dark:text-zinc-300"
                         }`}
                       >
-                        <BookOpen className="h-4 w-4 text-[#6b38d4] mt-0.5 shrink-0" />
+                        <BookOpen className="h-4 w-4 text-[#6b38d4] dark:text-purple-400 mt-0.5 shrink-0" />
                         <div>
                           <div className="text-xs font-semibold">{item.title}</div>
                           {item.subtitle && (
-                            <div className="text-[10px] text-slate-400 line-clamp-1">
+                            <div className="text-[10px] text-slate-400 dark:text-zinc-500 line-clamp-1">
                               {item.subtitle}
                             </div>
                           )}
@@ -181,7 +182,7 @@ export default function WikiSearch({ username, wikiSlug }: WikiSearchProps) {
 
               {sources.length > 0 && (
                 <div className="py-1">
-                  <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">
+                  <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 font-mono">
                     Sources
                   </div>
                   {sources.map((item) => {
@@ -192,15 +193,15 @@ export default function WikiSearch({ username, wikiSlug }: WikiSearchProps) {
                         key={item.id}
                         onClick={() => selectItem(item)}
                         onMouseEnter={() => setSelectedIndex(globalIdx)}
-                        className={`w-full text-left px-3 py-2 flex items-start gap-2.5 transition-colors ${
-                          isSelected ? "bg-slate-50 text-slate-900" : "text-slate-700"
+                        className={`w-full text-left px-3 py-2 flex items-start gap-2.5 transition-colors cursor-pointer ${
+                          isSelected ? "bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100" : "text-slate-705 dark:text-zinc-300"
                         }`}
                       >
-                        <Database className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" />
+                        <Database className="h-4 w-4 text-emerald-550 dark:text-emerald-400 mt-0.5 shrink-0" />
                         <div>
                           <div className="text-xs font-semibold">{item.title}</div>
                           {item.subtitle && (
-                            <div className="text-[10px] text-slate-400 line-clamp-1">
+                            <div className="text-[10px] text-slate-400 dark:text-zinc-500 line-clamp-1">
                               {item.subtitle}
                             </div>
                           )}

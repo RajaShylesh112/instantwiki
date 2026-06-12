@@ -10,12 +10,14 @@ interface GraphViewProps {
   wikiSlug: string
   wikiId: string
   initialPages: WikiPage[]
+  initialLinks?: { source_page_id: string; target_page_id: string; link_type: string }[]
+  activePageId?: string
 }
 
-export default function GraphView({ username, wikiSlug, wikiId, initialPages = [] }: GraphViewProps) {
+export default function GraphView({ username, wikiSlug, wikiId, initialPages = [], initialLinks = [], activePageId }: GraphViewProps) {
   const [zoom, setZoom] = useState(1.0)
   const [pan, setPan] = useState({ x: 0, y: 0 })
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(activePageId || null)
   const [searchQuery, setSearchQuery] = useState("")
   const [isSearchFocused, setIsSearchFocused] = useState(false)
   
@@ -46,16 +48,26 @@ export default function GraphView({ username, wikiSlug, wikiId, initialPages = [
     }
   })
 
-  // 2. Process Parent-Child Links
+  // 2. Process Page Links (Obsidian Graph cross-links)
   const links: { source: string; target: string }[] = []
-  initialPages.forEach(page => {
-    if (page.parent_page_id) {
+  if (initialLinks && initialLinks.length > 0) {
+    initialLinks.forEach(link => {
       links.push({
-        source: page.parent_page_id,
-        target: page.id
+        source: link.source_page_id,
+        target: link.target_page_id
       })
-    }
-  })
+    })
+  } else {
+    // Fallback to parent-child links if no page_links records exist
+    initialPages.forEach(page => {
+      if (page.parent_page_id) {
+        links.push({
+          source: page.parent_page_id,
+          target: page.id
+        })
+      }
+    })
+  }
 
   // 3. Calculate Node Positions Dynamically in a tree circular layout
   const calculateNodePositions = (pages: WikiPage[]) => {
@@ -70,7 +82,7 @@ export default function GraphView({ username, wikiSlug, wikiId, initialPages = [
     const children = pages.filter(p => p.parent_page_id === root.id && p.id !== root.id)
     children.forEach((child, idx) => {
       const angle = (idx / children.length) * 2 * Math.PI
-      const radius = 170
+      const radius = 250 // Expanded spacing
       const cx = 400 + Math.cos(angle) * radius
       const cy = 250 + Math.sin(angle) * radius
       positions[child.id] = { x: cx, y: cy }
@@ -78,9 +90,9 @@ export default function GraphView({ username, wikiSlug, wikiId, initialPages = [
       // Resolve grandchildren of this child node
       const grandchildren = pages.filter(p => p.parent_page_id === child.id && p.id !== child.id)
       grandchildren.forEach((gc, gcIdx) => {
-        // Offset angle for grandchildren spread
-        const gcAngle = angle + ((gcIdx - (grandchildren.length - 1) / 2) * 0.45)
-        const gcRadius = 110
+        // Offset angle for grandchildren spread - spread wider with 0.6 factor
+        const gcAngle = angle + ((gcIdx - (grandchildren.length - 1) / 2) * 0.6)
+        const gcRadius = 160 // Expanded spacing
         positions[gc.id] = {
           x: cx + Math.cos(gcAngle) * gcRadius,
           y: cy + Math.sin(gcAngle) * gcRadius
@@ -92,8 +104,8 @@ export default function GraphView({ username, wikiSlug, wikiId, initialPages = [
     pages.forEach((page, idx) => {
       if (!positions[page.id]) {
         positions[page.id] = { 
-          x: 200 + (idx * 80) % 400, 
-          y: 100 + (idx * 80) % 300 
+          x: 200 + (idx * 120) % 400, 
+          y: 100 + (idx * 120) % 300 
         }
       }
     })
@@ -101,7 +113,32 @@ export default function GraphView({ username, wikiSlug, wikiId, initialPages = [
     return positions
   }
 
-  const nodePositions = calculateNodePositions(initialPages)
+  const [nodePositions, setNodePositions] = useState<Record<string, { x: number; y: number }>>(() => {
+    return calculateNodePositions(initialPages)
+  })
+
+  const draggedNodeIdRef = useRef<string | null>(null)
+  const lastMousePosRef = useRef({ x: 0, y: 0 })
+  const hasCenteredRef = useRef(false)
+
+  useEffect(() => {
+    setNodePositions(calculateNodePositions(initialPages))
+    hasCenteredRef.current = false
+  }, [initialPages])
+
+  useEffect(() => {
+    if (activePageId && !hasCenteredRef.current) {
+      const initialPosMap = calculateNodePositions(initialPages)
+      const pos = initialPosMap[activePageId]
+      if (pos) {
+        setPan({
+          x: 400 - pos.x,
+          y: 250 - pos.y,
+        })
+        hasCenteredRef.current = true
+      }
+    }
+  }, [activePageId, initialPages])
 
   const connectedNodeIds = new Set<string>()
   if (selectedNodeId) {
@@ -117,6 +154,12 @@ export default function GraphView({ username, wikiSlug, wikiId, initialPages = [
 
   const selectedNode = nodes.find((n) => n.id === selectedNodeId)
 
+  const handleNodeMouseDown = (e: React.MouseEvent, nodeId: string) => {
+    e.stopPropagation() // Prevent triggering canvas drag
+    draggedNodeIdRef.current = nodeId
+    lastMousePosRef.current = { x: e.clientX, y: e.clientY }
+  }
+
   const handleMouseDown = (e: React.MouseEvent) => {
     const target = e.target as SVGElement
     if (target.tagName === "circle" || target.tagName === "text" || target.closest("button")) {
@@ -127,6 +170,23 @@ export default function GraphView({ username, wikiSlug, wikiId, initialPages = [
   }
 
   const handleMouseMove = (e: React.MouseEvent) => {
+    if (draggedNodeIdRef.current) {
+      const nodeId = draggedNodeIdRef.current
+      const dx = (e.clientX - lastMousePosRef.current.x) / zoom
+      const dy = (e.clientY - lastMousePosRef.current.y) / zoom
+      
+      setNodePositions((prev) => ({
+        ...prev,
+        [nodeId]: {
+          x: prev[nodeId].x + dx,
+          y: prev[nodeId].y + dy,
+        },
+      }))
+      
+      lastMousePosRef.current = { x: e.clientX, y: e.clientY }
+      return
+    }
+
     if (!isDraggingRef.current) return
     setPan({
       x: e.clientX - dragStartRef.current.x,
@@ -136,6 +196,7 @@ export default function GraphView({ username, wikiSlug, wikiId, initialPages = [
 
   const handleMouseUp = () => {
     isDraggingRef.current = false
+    draggedNodeIdRef.current = null
   }
 
   const handleWheel = (e: React.WheelEvent) => {
@@ -301,6 +362,7 @@ export default function GraphView({ username, wikiSlug, wikiId, initialPages = [
 
               const isSelected = selectedNodeId === node.id
               const isConnected = connectedNodeIds.has(node.id)
+              const isActivePage = activePageId === node.id
               
               const opacity = selectedNodeId ? (isConnected ? 1.0 : 0.2) : 1.0
               const radius = isSelected ? 16 : 12
@@ -323,8 +385,9 @@ export default function GraphView({ username, wikiSlug, wikiId, initialPages = [
                   key={node.id}
                   transform={`translate(${pos.x}, ${pos.y})`}
                   onClick={() => setSelectedNodeId(node.id === selectedNodeId ? null : node.id)}
+                  onMouseDown={(e) => handleNodeMouseDown(e, node.id)}
                   className="cursor-pointer group"
-                  style={{ opacity, transition: "all 0.2s ease" }}
+                  style={{ opacity, transition: "opacity 0.2s ease" }}
                   id="graph-node-element"
                 >
                   <circle
@@ -333,20 +396,50 @@ export default function GraphView({ username, wikiSlug, wikiId, initialPages = [
                     className="group-hover:fill-slate-200/40 transition-colors"
                   />
                   
+                  {isActivePage && (
+                    <circle
+                      r={radius + 6}
+                      fill="none"
+                      stroke="#8B5CF6"
+                      strokeWidth="1.5"
+                      strokeDasharray="4,4"
+                      className="animate-spin-slow"
+                    />
+                  )}
+
                   <circle
                     r={radius}
                     fill={fill}
-                    stroke={stroke}
-                    strokeWidth={isSelected ? 2.5 : 1.5}
+                    stroke={isActivePage ? "#8B5CF6" : stroke}
+                    strokeWidth={isSelected ? 2.5 : (isActivePage ? 2.0 : 1.5)}
                     className="shadow-sm transition-all"
                   />
 
                   <text
                     y={radius + 14}
                     textAnchor="middle"
-                    className="text-[10px] font-bold font-mono tracking-tight fill-slate-800 pointer-events-none select-none"
+                    className={`text-[10px] font-bold font-mono tracking-tight pointer-events-none select-none transition-colors ${
+                      isActivePage ? "fill-purple-700 font-extrabold" : "fill-slate-850"
+                    }`}
                   >
-                    {node.name}
+                    {(() => {
+                      const name = node.name
+                      const words = name.split(" ")
+                      if (name.length <= 18 || words.length <= 2) {
+                        return <tspan x="0" dy="0">{name}</tspan>
+                      }
+                      
+                      // Split into two lines for cleaner spacing and preventing overlaps
+                      const midpoint = Math.ceil(words.length / 2)
+                      const line1 = words.slice(0, midpoint).join(" ")
+                      const line2 = words.slice(midpoint).join(" ")
+                      return (
+                        <>
+                          <tspan x="0" dy="0">{line1}</tspan>
+                          <tspan x="0" dy="11">{line2}</tspan>
+                        </>
+                      )
+                    })()}
                   </text>
                 </g>
               )
@@ -416,6 +509,14 @@ export default function GraphView({ username, wikiSlug, wikiId, initialPages = [
         }
         .animate-fade-in {
           animation: fadeIn 0.15s ease-out forwards;
+        }
+        @keyframes spinSlow {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .animate-spin-slow {
+          animation: spinSlow 20s linear infinite;
+          transform-origin: 0px 0px;
         }
       `}</style>
     </div>
