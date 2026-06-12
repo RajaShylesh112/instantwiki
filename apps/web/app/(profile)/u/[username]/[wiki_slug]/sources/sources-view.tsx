@@ -22,9 +22,20 @@ interface SourcesViewProps {
   wikiSlug: string
   wikiId: string
   initialDocuments: Document[]
+  isDocLimitReached?: boolean
+  isPageLimitReached?: boolean
+  isCreditLimitInsufficient?: boolean
 }
 
-export default function SourcesView({ username, wikiSlug, wikiId, initialDocuments = [] }: SourcesViewProps) {
+export default function SourcesView({ 
+  username, 
+  wikiSlug, 
+  wikiId, 
+  initialDocuments = [],
+  isDocLimitReached = false,
+  isPageLimitReached = false,
+  isCreditLimitInsufficient = false
+}: SourcesViewProps) {
   const router = useRouter()
   const [sources, setSources] = useState<Document[]>(initialDocuments)
   const [isUploaderOpen, setIsUploaderOpen] = useState(false)
@@ -61,6 +72,25 @@ export default function SourcesView({ username, wikiSlug, wikiId, initialDocumen
   const addConsoleLog = (msg: string) => {
     const time = new Date().toLocaleTimeString(undefined, { hour12: false })
     setConsoleLogs(prev => [...prev, `[${time}] ${msg}`])
+  }
+
+  const getStepNodes = (step: string): string[] => {
+    switch (step) {
+      case "EXTRACTION":
+        return ["PDF Layout Parser", "Raw Text Stream", "Structure Extractor", "Metadata Ingestion", "Image Cropper"];
+      case "CHUNKING":
+        return ["Sliding Window", "Overlap Buffer", "Text Paragraphs", "Token Boundaries", "Chunk Map"];
+      case "EMBEDDINGS":
+        return ["1536-Dimensions", "Vector Space", "Cosine Similarity", "Embedding Model", "Index Pipeline"];
+      case "TOPIC_DISCOVERY":
+        return ["Concept Discovery", "Theme Extraction", "LDA Clustering", "Semantic Links", "Graph Nodes"];
+      case "SKELETON":
+        return ["Wiki Pages skeleton", "Aliases Mapping", "Internal Links", "Root Page Node", "Wiki Hierarchy"];
+      case "FINISHED":
+        return ["Wiki Live!", "Index Ready", "Full text search", "Knowledge Graph", "Navigation Enabled"];
+      default:
+        return ["System Ready", "Awaiting Ingestion", "Worker Active", "Queue Empty", "Cache Synced"];
+    }
   }
 
   useEffect(() => {
@@ -641,10 +671,24 @@ export default function SourcesView({ username, wikiSlug, wikiId, initialDocumen
           </p>
         </div>
         
+        {isDocLimitReached && (
+          <div className="flex items-start gap-2.5 p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-805 leading-normal w-full text-left">
+            <AlertTriangle className="h-4.5 w-4.5 text-amber-600 shrink-0 mt-0.5" />
+            <div>
+              <span className="font-bold">Upload Cap Reached:</span> You have reached the limit of 10 documents for the Free tier. Please upgrade your plan on the profile page to upload more documents.
+            </div>
+          </div>
+        )}
+
         {!isUploaderOpen && (
           <button
-            onClick={() => setIsUploaderOpen(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-[#6b38d4] hover:bg-[#8455ef] text-white rounded-md transition-colors"
+            onClick={() => !isDocLimitReached && setIsUploaderOpen(true)}
+            disabled={isDocLimitReached}
+            className={`inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-md transition-colors ${
+              isDocLimitReached
+                ? "bg-slate-150 text-slate-400 dark:bg-zinc-800 dark:text-zinc-600 cursor-not-allowed border border-transparent"
+                : "bg-[#6b38d4] hover:bg-[#8455ef] text-white cursor-pointer"
+            }`}
           >
             <Plus className="h-4 w-4" /> Add Knowledge Source
           </button>
@@ -714,7 +758,7 @@ export default function SourcesView({ username, wikiSlug, wikiId, initialDocumen
                       Drag and drop file here or <span className="text-[#6b38d4]">click to browse</span>
                     </p>
                     <p className="text-[10px] text-slate-400 font-mono">
-                      Supports PDF, TXT, MD, or DOCX up to 10MB
+                      Supports PDF, TXT, MD, or DOCX up to 50MB
                     </p>
                   </div>
                 )}
@@ -893,10 +937,32 @@ export default function SourcesView({ username, wikiSlug, wikiId, initialDocumen
           </div>
         )}
 
+        {isPageLimitReached && (
+          <div className="flex items-start gap-2.5 p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-805 leading-normal max-w-md text-left">
+            <AlertTriangle className="h-4.5 w-4.5 text-amber-600 shrink-0 mt-0.5" />
+            <div>
+              <span className="font-bold">Page Limit Reached:</span> You have reached the limit of 25 pages for the Free tier. Please upgrade your plan on the profile page to generate more pages.
+            </div>
+          </div>
+        )}
+
+        {isCreditLimitInsufficient && (
+          <div className="flex items-start gap-2.5 p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-805 leading-normal max-w-md text-left">
+            <AlertTriangle className="h-4.5 w-4.5 text-amber-600 shrink-0 mt-0.5" />
+            <div>
+              <span className="font-bold">Insufficient AI Credits:</span> Page generation requires 2 AI credits. Please upgrade your plan on the profile page or purchase more credits.
+            </div>
+          </div>
+        )}
+
         <button
           onClick={handleTriggerSynthesis}
-          disabled={sources.length === 0 || isSynthesizing}
-          className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-[#6b38d4] hover:bg-[#8455ef] text-white text-xs font-bold rounded-lg transition-colors shadow-sm disabled:opacity-50"
+          disabled={sources.length === 0 || isSynthesizing || isPageLimitReached || isCreditLimitInsufficient}
+          className={`inline-flex items-center gap-1.5 px-5 py-2.5 text-xs font-bold rounded-lg transition-colors shadow-sm ${
+            isPageLimitReached || isCreditLimitInsufficient
+              ? "bg-slate-150 text-slate-400 dark:bg-zinc-800 dark:text-zinc-650 cursor-not-allowed"
+              : "bg-[#6b38d4] hover:bg-[#8455ef] text-white cursor-pointer disabled:opacity-50"
+          }`}
         >
           <Sparkles className="h-3.5 w-3.5" /> Create Pages
         </button>
@@ -946,7 +1012,7 @@ export default function SourcesView({ username, wikiSlug, wikiId, initialDocumen
 
       {/* Full screen Synthesis overlay */}
       {isSynthesizing && (
-        <div className="fixed inset-0 bg-slate-955/85 z-50 backdrop-blur-md flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-955/85 z-50 backdrop-blur-[2px] flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-4xl w-full p-6 shadow-2xl relative overflow-hidden animate-fade-in flex flex-col gap-5 text-slate-100 font-sans">
             {/* Glowing top line */}
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-600 via-indigo-500 to-emerald-500" />
@@ -1031,7 +1097,7 @@ export default function SourcesView({ username, wikiSlug, wikiId, initialDocumen
                     Cognitive Concept Linker
                   </h4>
                   <span className="text-[9px] font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-900/50 px-2 py-0.5 rounded-full">
-                    {conceptsList.length} nodes mapped
+                    {getStepNodes(currentStep).length} nodes active
                   </span>
                 </div>
 
@@ -1045,33 +1111,41 @@ export default function SourcesView({ username, wikiSlug, wikiId, initialDocumen
                       </pattern>
                     </defs>
                     <rect width="100%" height="100%" fill="url(#grid)" />
-                    {/* Animated connections */}
-                    <path
-                      d="M 50,44 L 148,33 M 148,33 L 99,99 M 99,99 L 44,165 M 44,165 L 165,154 M 99,99 L 165,154 M 50,44 L 99,99"
-                      className="stroke-purple-500/20 stroke-[1.5]"
-                      strokeDasharray="4,4"
-                    />
-                    <path
-                      d="M 50,44 L 99,99 M 99,99 L 165,154"
-                      className="stroke-emerald-500/30 stroke-[2] animate-pulse"
-                      strokeDasharray="6,6"
-                      style={{ animationDuration: '3s' }}
-                    />
+                    
+                    {/* Connections from center to surrounding nodes */}
+                    <line x1="20%" y1="25%" x2="50%" y2="50%" className="stroke-purple-500/20 stroke-[1]" strokeDasharray="4,4" />
+                    <line x1="80%" y1="22%" x2="50%" y2="50%" className="stroke-purple-500/20 stroke-[1]" strokeDasharray="4,4" />
+                    <line x1="22%" y1="78%" x2="50%" y2="50%" className="stroke-purple-500/20 stroke-[1]" strokeDasharray="4,4" />
+                    <line x1="78%" y1="78%" x2="50%" y2="50%" className="stroke-purple-500/20 stroke-[1]" strokeDasharray="4,4" />
+                    <line x1="50%" y1="15%" x2="50%" y2="50%" className="stroke-purple-500/20 stroke-[1]" strokeDasharray="4,4" />
+
+                    {/* Glowing active line pulse */}
+                    <line x1="20%" y1="25%" x2="50%" y2="50%" className="stroke-emerald-500/20 stroke-[2] animate-pulse" strokeDasharray="6,6" style={{ animationDuration: '3s' }} />
+                    <line x1="80%" y1="22%" x2="50%" y2="50%" className="stroke-emerald-500/20 stroke-[2] animate-pulse" strokeDasharray="6,6" style={{ animationDuration: '4s' }} />
+                    <line x1="22%" y1="78%" x2="50%" y2="50%" className="stroke-emerald-500/20 stroke-[2] animate-pulse" strokeDasharray="6,6" style={{ animationDuration: '2.5s' }} />
+                    <line x1="78%" y1="78%" x2="50%" y2="50%" className="stroke-emerald-500/20 stroke-[2] animate-pulse" strokeDasharray="6,6" style={{ animationDuration: '3.5s' }} />
+                    <line x1="50%" y1="15%" x2="50%" y2="50%" className="stroke-emerald-500/20 stroke-[2] animate-pulse" strokeDasharray="6,6" style={{ animationDuration: '2.8s' }} />
                   </svg>
-                  {/* Floating concepts nodes */}
-                  {conceptsList.slice(0, 6).map((concept, idx) => {
+                  
+                  {/* Central Node */}
+                  <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 px-3 py-1.5 bg-slate-900/90 border border-purple-500 text-purple-300 text-[10px] font-extrabold uppercase rounded-full shadow-[0_0_15px_rgba(168,85,247,0.4)] z-20 flex items-center gap-1.5 font-mono">
+                    <span className="w-2 h-2 rounded-full bg-purple-500 animate-ping" />
+                    {currentStep}
+                  </div>
+
+                  {/* Floating Step Nodes */}
+                  {getStepNodes(currentStep).map((concept, idx) => {
                     const pos = [
                       { x: "20%", y: "25%" },
-                      { x: "75%", y: "20%" },
-                      { x: "50%", y: "55%" },
-                      { x: "25%", y: "80%" },
-                      { x: "75%", y: "75%" },
+                      { x: "80%", y: "22%" },
+                      { x: "22%", y: "78%" },
+                      { x: "78%", y: "78%" },
                       { x: "50%", y: "15%" }
                     ][idx] || { x: "50%", y: "50%" }
                     return (
                       <div
                         key={concept + idx}
-                        className="absolute transform -translate-x-1/2 -translate-y-1/2 px-2.5 py-1 bg-slate-900/90 border border-purple-500/30 text-purple-200 text-[9px] font-semibold rounded-md shadow-lg backdrop-blur-xs flex items-center gap-1.5 animate-bounce-slow"
+                        className="absolute transform -translate-x-1/2 -translate-y-1/2 px-2.5 py-1 bg-slate-900/95 border border-purple-500/30 text-purple-200 text-[9px] font-semibold rounded-md shadow-lg backdrop-blur-xs flex items-center gap-1.5 animate-bounce-slow z-10"
                         style={{
                           left: pos.x,
                           top: pos.y,
@@ -1160,7 +1234,7 @@ export default function SourcesView({ username, wikiSlug, wikiId, initialDocumen
           background-color: rgba(15, 23, 42, 0.35);
         }
         .bg-slate-955\/85 {
-          background-color: rgba(15, 23, 42, 0.85);
+          background-color: rgba(15, 23, 42, 0.5);
         }
       `}</style>
     </div>

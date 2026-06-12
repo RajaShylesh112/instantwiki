@@ -1,13 +1,10 @@
 "use server"
+import { supabase } from "@/lib/supabase";
 
 import { auth } from "auth"
-import { createClient } from "@supabase/supabase-js"
 import { revalidatePath } from "next/cache"
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_KEY!
-)
+
 
 interface UpdateProfileResult {
   success: boolean
@@ -100,6 +97,45 @@ export async function updateProfile(
     return { success: true, redirectUrl: `/u/${cleanUsername}` }
   } catch (err) {
     console.error("Error updating profile:", err)
+    return { success: false, error: "An unexpected error occurred." }
+  }
+}
+
+export async function updatePlan(userId: string, newPlan: "FREE" | "PRO"): Promise<{ success: boolean; error?: string }> {
+  try {
+    const session = await auth()
+    if (!session?.user?.email) {
+      return { success: false, error: "Unauthorized. Please sign in." }
+    }
+
+    const { data: dbUser, error: dbError } = await supabase
+      .from("users")
+      .select("id, username")
+      .eq("email", session.user.email)
+      .maybeSingle()
+
+    if (dbError || !dbUser) {
+      return { success: false, error: "Authenticated user not found in database." }
+    }
+
+    if (dbUser.id !== userId) {
+      return { success: false, error: "Forbidden. You can only edit your own plan." }
+    }
+
+    const { error: updateError } = await supabase
+      .from("users")
+      .update({ plan: newPlan })
+      .eq("id", userId)
+
+    if (updateError) {
+      console.error("Supabase update plan error:", updateError)
+      return { success: false, error: "Failed to update plan in database." }
+    }
+
+    revalidatePath(`/u/${dbUser.username}`)
+    return { success: true }
+  } catch (err) {
+    console.error("Error updating plan:", err)
     return { success: false, error: "An unexpected error occurred." }
   }
 }

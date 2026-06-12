@@ -1,13 +1,11 @@
+import { supabase } from "@/lib/supabase";
 import { NextRequest } from "next/server"
 import { auth } from "auth"
-import { createClient } from "@supabase/supabase-js"
 import { createHash } from "crypto"
 import { DocumentRepository, DocumentSourceType, DocumentMimeType } from "@/lib/repositories/document"
+import { canUploadDocument } from "@/services/limits"
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_KEY!
-)
+
 
 // Media and video domains to reject
 const MEDIA_DOMAINS = [
@@ -100,6 +98,23 @@ export async function POST(
       return Response.json({ error: "Invalid source type specified." }, { status: 400 })
     }
 
+    // Resolve database user ID
+    let userId = session.user.id
+    if (!userId && session.user.email) {
+      const { data: dbUser } = await supabase
+        .from("users")
+        .select("id")
+        .eq("email", session.user.email)
+        .maybeSingle()
+      if (dbUser) {
+        userId = dbUser.id
+      }
+    }
+
+    if (!userId) {
+      return Response.json({ error: "User not found in database." }, { status: 404 })
+    }
+
     // --- CASE A: FILE UPLOAD ---
     if (sourceType === "FILE") {
       const file = formData.get("file") as File | null
@@ -110,6 +125,13 @@ export async function POST(
       // Convert file to buffer
       const buffer = Buffer.from(await file.arrayBuffer())
       const filename = file.name
+      const fileSize = buffer.length
+
+      // Enforce file upload size and document count limits
+      const limitCheck = await canUploadDocument(userId, fileSize)
+      if (!limitCheck.allowed) {
+        return Response.json({ error: limitCheck.error }, { status: 403 })
+      }
       
       // Determine mime_type
       const ext = filename.split(".").pop()?.toLowerCase() || ""
@@ -138,7 +160,8 @@ export async function POST(
           source_type: "FILE",
           mime_type: mimeType,
           content_hash: contentHash,
-          processing_status: "READY" // Reused files skip processing
+          processing_status: "READY", // Reused files skip processing
+          file_size: fileSize
         })
 
         return Response.json({ status: "REUSED", doc: newDoc })
@@ -170,7 +193,8 @@ export async function POST(
             source_type: "FILE",
             mime_type: mimeType,
             content_hash: contentHash,
-            processing_status: "READY"
+            processing_status: "READY",
+            file_size: fileSize
           })
           return Response.json({ status: "NEW", doc: mockDoc, warning: "Uploaded in mock sandbox environment." })
         }
@@ -185,7 +209,8 @@ export async function POST(
         source_type: "FILE",
         mime_type: mimeType,
         content_hash: contentHash,
-        processing_status: "READY"
+        processing_status: "READY",
+        file_size: fileSize
       })
 
       return Response.json({ status: "NEW", doc: newDoc })
@@ -243,6 +268,13 @@ export async function POST(
 
       const textBuffer = Buffer.from(extractedText, "utf-8")
       const contentHash = calculateHash(textBuffer)
+      const fileSize = textBuffer.length
+
+      // Enforce document and storage limit checks for URL import
+      const limitCheck = await canUploadDocument(userId, fileSize)
+      if (!limitCheck.allowed) {
+        return Response.json({ error: limitCheck.error }, { status: 403 })
+      }
       
       // Clean filename derived from hostname + pathname
       const cleanPath = parsedUrl.pathname.replace(/\/$/, "").replace(/\//g, "-")
@@ -265,7 +297,8 @@ export async function POST(
           source_type: "URL",
           mime_type: "txt",
           content_hash: contentHash,
-          processing_status: "READY"
+          processing_status: "READY",
+          file_size: fileSize
         })
         return Response.json({ status: "REUSED", doc: newDoc })
       }
@@ -295,7 +328,8 @@ export async function POST(
             source_type: "URL",
             mime_type: "txt",
             content_hash: contentHash,
-            processing_status: "READY"
+            processing_status: "READY",
+            file_size: fileSize
           })
           return Response.json({ status: "NEW", doc: mockDoc, warning: "Uploaded in mock sandbox environment." })
         }
@@ -310,7 +344,8 @@ export async function POST(
         source_type: "URL",
         mime_type: "txt",
         content_hash: contentHash,
-        processing_status: "READY"
+        processing_status: "READY",
+        file_size: fileSize
       })
 
       return Response.json({ status: "NEW", doc: newDoc })

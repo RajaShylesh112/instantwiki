@@ -1,12 +1,9 @@
-import { createClient } from "@supabase/supabase-js"
+import { supabase } from "@/lib/supabase";
 import { WikiRepository } from "@/lib/repositories/wiki"
 import { DocumentRepository } from "@/lib/repositories/document"
 import SourcesView from "./sources-view"
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_KEY!
-)
+
 
 interface SourcesPageProps {
   params: Promise<{
@@ -74,12 +71,31 @@ export default async function SourcesPage({ params }: SourcesPageProps) {
     }
   }
 
+  // 4. Resolve limits and usage
+  let isDocLimitReached = false
+  let isPageLimitReached = false
+  let isCreditLimitInsufficient = false
+  if (ownerUser) {
+    try {
+      const { getUserUsage } = require("@/services/limits")
+      const usage = await getUserUsage(ownerUser.id)
+      isDocLimitReached = usage.docsCount >= usage.docsLimit
+      isPageLimitReached = usage.pagesCount >= usage.pagesLimit
+      isCreditLimitInsufficient = usage.plan === "FREE" && (usage.aiCreditsLimit - usage.aiCreditsUsed < 2)
+    } catch (err) {
+      console.error("Error checking document/page limits on sources page:", err)
+    }
+  }
+
   return (
     <SourcesView 
       username={username} 
       wikiSlug={wiki_slug} 
       wikiId={wiki.id}
       initialDocuments={initialDocuments}
+      isDocLimitReached={isDocLimitReached}
+      isPageLimitReached={isPageLimitReached}
+      isCreditLimitInsufficient={isCreditLimitInsufficient}
     />
   )
 }

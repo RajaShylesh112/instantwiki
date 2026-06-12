@@ -1,7 +1,7 @@
+import { supabase } from "@/lib/supabase";
 import React from "react"
 import { auth } from "auth"
 import { notFound } from "next/navigation"
-import { createClient } from "@supabase/supabase-js"
 import { WikiRepository } from "@/lib/repositories/wiki"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
@@ -22,10 +22,7 @@ import SourceCoverage from "@/components/wiki/source-coverage"
 import GraphPreview from "@/components/wiki/graph-preview"
 import LearningPath from "@/components/wiki/learning-path"
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_KEY!
-)
+
 
 interface WikiPageProps {
   params: Promise<{

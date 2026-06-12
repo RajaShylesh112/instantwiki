@@ -1,13 +1,10 @@
+import { supabase } from "@/lib/supabase";
 import { notFound } from "next/navigation"
-import { createClient } from "@supabase/supabase-js"
 import { WikiRepository } from "@/lib/repositories/wiki"
 import { WikiGeneratorRepository } from "@/lib/repositories/wiki-generator"
 import ArticleView from "./article-view"
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_KEY!
-)
+
 
 interface ArticlePageProps {
   params: Promise<{

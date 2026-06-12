@@ -1,12 +1,9 @@
 "use server"
+import { supabase } from "@/lib/supabase";
 
-import { createClient } from "@supabase/supabase-js"
 import { hashPassword } from "@/lib/password"
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_KEY!
-)
+
 
 interface RegisterResult {
   success: boolean

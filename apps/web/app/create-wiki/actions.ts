@@ -1,16 +1,14 @@
 "use server"
+import { supabase } from "@/lib/supabase";
 
 import { auth } from "auth"
-import { createClient } from "@supabase/supabase-js"
 import { WikiRepository } from "@/lib/repositories/wiki"
 import { getAIProvider } from "@/services/ai/provider"
 import { createWikiSchema } from "@/lib/validation/wiki"
 import { revalidatePath } from "next/cache"
+import { canCreateWiki, canGenerateNames, incrementAiCredits } from "@/services/limits"
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_KEY!
-)
+
 
 /**
  * Server action to generate wiki title and slug suggestions using DeepSeek AI.
@@ -18,7 +16,7 @@ const supabase = createClient(
 export async function generateWikiNamesAction(topic: string, description: string) {
   try {
     const session = await auth()
-    if (!session?.user) {
+    if (!session?.user?.email) {
       return { success: false, error: "Unauthorized. Please sign in." }
     }
 
@@ -26,8 +24,36 @@ export async function generateWikiNamesAction(topic: string, description: string
       return { success: false, error: "Topic is required for suggestions." }
     }
 
+    // Resolve user ID
+    let userId = session.user.id
+    if (!userId) {
+      const { data: dbUser } = await supabase
+        .from("users")
+        .select("id")
+        .eq("email", session.user.email)
+        .maybeSingle()
+      if (dbUser) {
+        userId = dbUser.id
+      }
+    }
+
+    if (!userId) {
+      return { success: false, error: "User not found in database." }
+    }
+
+    // Check limit
+    const limitCheck = await canGenerateNames(userId)
+    if (!limitCheck.allowed) {
+      return { success: false, error: limitCheck.error }
+    }
+
     const { provider, isMocked } = getAIProvider()
     const suggestions = await provider.generateWikiNames(topic, description)
+
+    // Increment credits ONLY if name generation succeeded and returned suggestions
+    if (suggestions && suggestions.length > 0) {
+      await incrementAiCredits(userId, 1)
+    }
 
     return { success: true, suggestions, isMocked }
   } catch (err: any) {
@@ -75,6 +101,14 @@ export async function createWikiAction(data: {
       dbUser = {
         id: session.user.id || "mock-user-id",
         username: session.user.username || "sandbox",
+      }
+    }
+
+    // Check workspace limits
+    if (dbUser.id !== "mock-user-id") {
+      const limitCheck = await canCreateWiki(dbUser.id)
+      if (!limitCheck.allowed) {
+        return { success: false, error: limitCheck.error }
       }
     }
 

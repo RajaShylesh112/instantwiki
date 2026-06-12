@@ -1,12 +1,9 @@
-import { createClient } from "@supabase/supabase-js"
+import { supabase } from "@/lib/supabase";
 import { WikiRepository } from "@/lib/repositories/wiki"
 import { WikiGeneratorRepository } from "@/lib/repositories/wiki-generator"
 import GraphView from "./graph-view"
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_KEY!
-)
+
 
 interface GraphPageProps {
   params: Promise<{

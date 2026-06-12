@@ -1,15 +1,12 @@
+import { supabase } from "@/lib/supabase";
 import { auth } from "auth"
 import { notFound } from "next/navigation"
-import { createClient } from "@supabase/supabase-js"
 import { WikiRepository } from "@/lib/repositories/wiki"
 import Link from "next/link"
 import SidebarNav from "./sidebar-nav"
 import ThemeToggle from "@/components/layout/ThemeToggle"
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_KEY!
-)
+
 
 interface WikiLayoutProps {
   children: React.ReactNode

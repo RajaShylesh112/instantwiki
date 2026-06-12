@@ -1,12 +1,9 @@
+import { supabase } from "@/lib/supabase";
 import { auth } from "auth"
-import { createClient } from "@supabase/supabase-js"
 import ProfileDetails from "./profile-details"
 import Header from "@/components/header"
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_KEY!
-)
+
 
 interface ProfilePageProps {
   params: Promise<{
@@ -18,13 +15,13 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   const { username } = await params
 
   // 1. Resolve user profile from Supabase
-  let dbUser: { id: string; email: string; username: string; image: string | null } | null = null
+  let dbUser: { id: string; email: string; username: string; image: string | null; plan: string } | null = null
   let isMocked = false
 
   try {
     const { data, error } = await supabase
       .from("users")
-      .select("id, email, username, image")
+      .select("id, email, username, image, plan")
       .eq("username", username.toLowerCase())
       .maybeSingle()
 
@@ -43,6 +40,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       username: username.toLowerCase(),
       email: `${username.toLowerCase()}@instant.wiki`,
       image: null,
+      plan: "FREE"
     }
     isMocked = true
   }
@@ -50,6 +48,33 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   // 2. Resolve session permission ownership
   const session = await auth()
   const isOwner = session?.user?.email === dbUser.email
+
+  // 3. Resolve user limits and statistics if they exist in the DB
+  let usage = {
+    plan: "FREE" as "FREE" | "PRO",
+    workspacesCount: 0,
+    workspacesLimit: 1,
+    pagesCount: 0,
+    pagesLimit: 25,
+    docsCount: 0,
+    docsLimit: 10,
+    aiCreditsUsed: 0,
+    aiCreditsLimit: 5,
+    storageBytesUsed: 0,
+    storageLimit: 50 * 1024 * 1024,
+    chunksCount: 0,
+    imagesCount: 0
+  }
+
+  if (dbUser && !isMocked) {
+    try {
+      const { getUserUsage } = require("@/services/limits")
+      const liveUsage = await getUserUsage(dbUser.id)
+      usage = liveUsage
+    } catch (err) {
+      console.error("Error retrieving user usage stats:", err)
+    }
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAFAF8] dark:bg-zinc-950 text-[#1A1C1B] dark:text-zinc-100">
@@ -70,6 +95,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             user={dbUser}
             isOwner={isOwner || isMocked}
             isMocked={isMocked}
+            usage={usage}
           />
         </div>
       </main>

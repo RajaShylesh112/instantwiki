@@ -1,6 +1,6 @@
+import { supabase } from "@/lib/supabase";
 import { NextRequest } from "next/server"
 import { auth } from "auth"
-import { createClient } from "@supabase/supabase-js"
 import fs from "fs"
 import path from "path"
 import os from "os"
@@ -9,11 +9,9 @@ import { WikiGeneratorRepository } from "@/lib/repositories/wiki-generator"
 import { PdfExtractorService, ExtractedImage } from "@/services/pdf-extractor"
 import { EmbeddingService } from "@/services/ai/embeddings"
 import { getAIProvider } from "@/services/ai/provider"
+import { canGeneratePages, incrementAiCredits } from "@/services/limits"
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_KEY!
-)
+
 
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number, errorMsg: string): Promise<T> {
   let timeoutId: NodeJS.Timeout;
@@ -40,6 +38,29 @@ export async function POST(
     const session = await auth()
     if (!session?.user) {
       return Response.json({ error: "Unauthorized session" }, { status: 401 })
+    }
+
+    // Resolve database user ID
+    let userId = session.user.id
+    if (!userId && session.user.email) {
+      const { data: dbUser } = await supabase
+        .from("users")
+        .select("id")
+        .eq("email", session.user.email)
+        .maybeSingle()
+      if (dbUser) {
+        userId = dbUser.id
+      }
+    }
+
+    if (!userId) {
+      return Response.json({ error: "User not found in database." }, { status: 404 })
+    }
+
+    // Enforce limits
+    const limitCheck = await canGeneratePages(userId, wiki_id)
+    if (!limitCheck.allowed) {
+      return Response.json({ error: limitCheck.error }, { status: 403 })
     }
 
     // 2. Fetch all documents for this wiki
@@ -91,15 +112,17 @@ export async function runIngestionPipeline(jobId: string, wikiId: string, docume
   // Fetch wiki details to customize fallback topics if needed
   let wikiTitle = ""
   let wikiDesc = ""
+  let userId = ""
   try {
     const { data: wiki } = await supabase
       .from("wikis")
-      .select("title, description")
+      .select("title, description, owner_id")
       .eq("id", wikiId)
       .maybeSingle()
     if (wiki) {
       wikiTitle = wiki.title || ""
       wikiDesc = wiki.description || ""
+      userId = wiki.owner_id || ""
     }
   } catch (e) {
     console.warn("Non-fatal: Error fetching wiki in ingestion pipeline:", e)
@@ -713,7 +736,28 @@ export async function runIngestionPipeline(jobId: string, wikiId: string, docume
     }
   })
 
-  const insertedPages = await WikiGeneratorRepository.insertPageSkeletonsBulk(skeletonsToInsert)
+  // Get owner's plan and enforce limits
+  const { data: wiki } = await supabase
+    .from("wikis")
+    .select("owner_id")
+    .eq("id", wikiId)
+    .maybeSingle()
+  
+  let allowedSkeletons = skeletonsToInsert
+  if (wiki?.owner_id) {
+    const { getUserUsage } = require("@/services/limits")
+    const usage = await getUserUsage(wiki.owner_id)
+    if (usage.plan === "FREE") {
+      // After deleting current wiki pages, the live count is already correct
+      const remainingSlots = Math.max(0, usage.pagesLimit - usage.pagesCount)
+      if (skeletonsToInsert.length > remainingSlots) {
+        console.warn(`[Limits] Skeletons to insert (${skeletonsToInsert.length}) exceeds remaining Free slots (${remainingSlots}). Capping.`)
+        allowedSkeletons = skeletonsToInsert.slice(0, remainingSlots)
+      }
+    }
+  }
+
+  const insertedPages = await WikiGeneratorRepository.insertPageSkeletonsBulk(allowedSkeletons)
   
   insertedPages.forEach(page => {
     pageMap[page.slug] = page.id
@@ -1047,6 +1091,15 @@ export async function runIngestionPipeline(jobId: string, wikiId: string, docume
   // Mark job as completed
   console.log(`[Synthesis Pipeline] Ingestion pipeline successfully completed.`)
   await WikiGeneratorRepository.updateJobStep(jobId, "FINISHED", "COMPLETED")
+  
+  if (userId) {
+    try {
+      await incrementAiCredits(userId, 2)
+      console.log(`[Synthesis Pipeline] Charged 2 AI credits to user ${userId}`)
+    } catch (err) {
+      console.error("[Synthesis Pipeline] Failed to charge AI credits:", err)
+    }
+  }
 }
 
 /**

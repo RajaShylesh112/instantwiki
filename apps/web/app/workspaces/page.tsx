@@ -1,16 +1,13 @@
+import { supabase } from "@/lib/supabase";
 import { auth } from "auth"
 import { redirect } from "next/navigation"
-import { createClient } from "@supabase/supabase-js"
 import { WikiRepository, Wiki } from "@/lib/repositories/wiki"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Globe, Lock, EyeOff, Plus, BookOpen, Briefcase } from "lucide-react"
 import Header from "@/components/header"
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_KEY!
-)
+
 
 export default async function WorkspacesPage() {
   // 1. Session check

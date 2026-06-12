@@ -1,9 +1,6 @@
-import { createClient } from "@supabase/supabase-js"
+import { supabase } from "@/lib/supabase";
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_KEY!
-)
+
 
 export type WikiVisibility = "PRIVATE" | "UNLISTED" | "PUBLIC"
 export type WikiStatus = "DRAFT" | "PROCESSING" | "READY" | "FAILED"

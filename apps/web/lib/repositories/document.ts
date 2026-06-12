@@ -1,9 +1,6 @@
-import { createClient } from "@supabase/supabase-js"
+import { supabase } from "@/lib/supabase";
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_KEY!
-)
+
 
 export type DocumentSourceType = "FILE" | "URL"
 export type DocumentMimeType = "pdf" | "md" | "txt" | "docx"
@@ -18,6 +15,7 @@ export interface Document {
   mime_type: DocumentMimeType
   content_hash: string
   processing_status: DocumentProcessingStatus
+  file_size?: number
   created_at: string
   updated_at: string
 }
@@ -94,6 +92,7 @@ export const DocumentRepository = {
     mime_type: DocumentMimeType
     content_hash: string
     processing_status?: DocumentProcessingStatus
+    file_size?: number
   }): Promise<Document> {
     const { data, error } = await supabase
       .from("documents")
@@ -104,7 +103,8 @@ export const DocumentRepository = {
         source_type: doc.source_type,
         mime_type: doc.mime_type,
         content_hash: doc.content_hash,
-        processing_status: doc.processing_status || "PENDING"
+        processing_status: doc.processing_status || "PENDING",
+        file_size: doc.file_size || 0
       })
       .select("*")
       .single()

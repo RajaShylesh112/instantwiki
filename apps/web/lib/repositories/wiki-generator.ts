@@ -1,9 +1,6 @@
-import { createClient } from "@supabase/supabase-js"
+import { supabase } from "@/lib/supabase";
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_KEY!
-)
+
 
 export type JobStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED"
 export type JobStep = "EXTRACTION" | "CHUNKING" | "EMBEDDINGS" | "TOPIC_DISCOVERY" | "SKELETON" | "FINISHED"

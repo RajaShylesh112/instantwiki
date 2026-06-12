@@ -1,14 +1,11 @@
+import { supabase } from "@/lib/supabase";
 import { NextRequest } from "next/server"
 import { auth } from "auth"
-import { createClient } from "@supabase/supabase-js"
 import { WikiGeneratorRepository } from "@/lib/repositories/wiki-generator"
 import { DocumentRepository } from "@/lib/repositories/document"
 import { EmbeddingService } from "@/services/ai/embeddings"
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_KEY!
-)
+
 
 export const dynamic = "force-dynamic"
 

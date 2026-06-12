@@ -1,9 +1,13 @@
+import { supabase } from "@/lib/supabase";
 import { auth } from "auth"
 import { redirect } from "next/navigation"
 import Header from "@/components/header"
 import CreateWikiForm from "./create-wiki-form"
 import { ChevronRight } from "lucide-react"
 import Link from "next/link"
+import { getUserUsage } from "@/services/limits"
+
+
 
 export default async function CreateWikiPage() {
   // 1. Session authorization guard
@@ -13,6 +17,27 @@ export default async function CreateWikiPage() {
   }
 
   const username = session.user.username || "sandbox"
+
+  let isWorkspaceLimitReached = false
+  let isAiLimitReached = false
+
+  if (session.user.email) {
+    try {
+      const { data: dbUser } = await supabase
+        .from("users")
+        .select("id")
+        .eq("email", session.user.email)
+        .maybeSingle()
+        
+      if (dbUser) {
+        const usage = await getUserUsage(dbUser.id)
+        isWorkspaceLimitReached = usage.workspacesCount >= usage.workspacesLimit
+        isAiLimitReached = usage.aiCreditsUsed >= usage.aiCreditsLimit
+      }
+    } catch (e) {
+      console.error("Error fetching usage limits for create-wiki page:", e)
+    }
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAFAF8] dark:bg-zinc-950 text-slate-800 dark:text-zinc-200">
@@ -41,7 +66,11 @@ export default async function CreateWikiPage() {
         </div>
 
         {/* Wiki Creation Grid Form */}
-        <CreateWikiForm username={username} />
+        <CreateWikiForm 
+          username={username} 
+          isWorkspaceLimitReached={isWorkspaceLimitReached} 
+          isAiLimitReached={isAiLimitReached} 
+        />
 
       </main>
     </div>

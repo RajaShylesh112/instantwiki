@@ -1,11 +1,8 @@
+import { supabase } from "@/lib/supabase";
 import SettingsView from "./settings-view"
-import { createClient } from "@supabase/supabase-js"
 import { WikiRepository } from "@/lib/repositories/wiki"
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_KEY!
-)
+
 
 interface SettingsPageProps {
   params: Promise<{

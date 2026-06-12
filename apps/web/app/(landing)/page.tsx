@@ -1,11 +1,37 @@
+import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import { auth } from "auth";
 import { redirect } from "next/navigation";
 import Header from "@/components/header";
 import { Sparkles, FileText, Link as LinkIcon, Network, Compass, ArrowRight } from "lucide-react";
 
+;
+
 export default async function LandingPage() {
   const session = await auth();
+
+  let publicWikis: any[] = [];
+  try {
+    const { data, error } = await supabase
+      .from("wikis")
+      .select(`
+        id,
+        title,
+        slug,
+        description,
+        owner_id,
+        users (username),
+        wiki_pages (count)
+      `)
+      .eq("visibility", "PUBLIC")
+      .order("created_at", { ascending: false });
+
+    if (!error && data) {
+      publicWikis = data;
+    }
+  } catch (err) {
+    console.error("Error fetching public wikis for gallery:", err);
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAFAF8] dark:bg-zinc-950 text-[#1A1C1B] dark:text-zinc-100">
@@ -205,46 +231,41 @@ export default async function LandingPage() {
               </div>
             </div>
             
-            <div className="grid gap-6 sm:grid-cols-3">
-              <div className="group rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 text-left hover:border-[#6b38d4]/30 dark:hover:border-purple-500/30 hover:shadow-md transition-all">
-                <span className="text-[#6d3bd7] dark:text-purple-400 font-bold text-sm group-hover:underline block truncate">
-                  Machine Learning Atlas
-                </span>
-                <p className="text-xs text-[#494454] dark:text-zinc-300 mt-2 font-serif line-clamp-2 leading-relaxed">
-                  A comprehensive knowledge directory mapping concepts and references.
-                </p>
-                <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-100 dark:border-zinc-800 text-[10px] text-slate-400 dark:text-zinc-500 font-mono">
-                  <span>8 pages</span>
-                  <span className="bg-blue-50 dark:bg-blue-955/20 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded border border-blue-100 dark:border-blue-900/40 uppercase">Public</span>
-                </div>
+            {publicWikis.length === 0 ? (
+              <div className="text-center py-12 text-sm text-slate-400 dark:text-zinc-500 font-mono border border-dashed border-slate-200 dark:border-zinc-800 rounded-xl bg-white dark:bg-zinc-900 shadow-2xs">
+                No public wikis published yet. Be the first to publish!
               </div>
-
-              <div className="group rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 text-left hover:border-[#6b38d4]/30 dark:hover:border-purple-500/30 hover:shadow-md transition-all">
-                <span className="text-[#6d3bd7] dark:text-purple-400 font-bold text-sm group-hover:underline block truncate">
-                  Startup Handbook
-                </span>
-                <p className="text-xs text-[#494454] dark:text-zinc-300 mt-2 font-serif line-clamp-2 leading-relaxed">
-                  Aggregating foundational paradigms and operational guidelines.
-                </p>
-                <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-100 dark:border-zinc-800 text-[10px] text-slate-400 dark:text-zinc-500 font-mono">
-                  <span>12 pages</span>
-                  <span className="bg-blue-50 dark:bg-blue-955/20 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded border border-blue-100 dark:border-blue-900/40 uppercase">Public</span>
-                </div>
+            ) : (
+              <div className="grid gap-6 sm:grid-cols-3">
+                {publicWikis.map((wiki) => {
+                  const username = wiki.users?.username || "sandbox";
+                  const pageCount = wiki.wiki_pages?.[0]?.count || 0;
+                  return (
+                    <Link
+                      key={wiki.id}
+                      href={`/u/${username}/${wiki.slug}`}
+                      className="group rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 text-left hover:border-[#6b38d4]/30 dark:hover:border-purple-500/30 hover:shadow-md transition-all flex flex-col justify-between"
+                    >
+                      <div>
+                        <span className="text-[#6d3bd7] dark:text-purple-400 font-bold text-sm group-hover:underline block truncate">
+                          {wiki.title}
+                        </span>
+                        <span className="text-[9px] font-mono text-slate-400 dark:text-zinc-500 block mt-0.5">
+                          by @{username}
+                        </span>
+                        <p className="text-xs text-[#494454] dark:text-zinc-300 mt-2 font-serif line-clamp-2 leading-relaxed">
+                          {wiki.description || "A comprehensive knowledge directory mapping concepts and references."}
+                        </p>
+                      </div>
+                      <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-100 dark:border-zinc-800 text-[10px] text-slate-400 dark:text-zinc-500 font-mono">
+                        <span>{pageCount} page{pageCount !== 1 ? "s" : ""}</span>
+                        <span className="bg-blue-50 dark:bg-blue-955/20 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded border border-blue-100 dark:border-blue-900/40 uppercase">Public</span>
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
-
-              <div className="group rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 text-left hover:border-[#6b38d4]/30 dark:hover:border-purple-500/30 hover:shadow-md transition-all">
-                <span className="text-[#6d3bd7] dark:text-purple-400 font-bold text-sm group-hover:underline block truncate">
-                  Travel Knowledge Base
-                </span>
-                <p className="text-xs text-[#494454] dark:text-zinc-300 mt-2 font-serif line-clamp-2 leading-relaxed">
-                  Structured reference documentation organizing travel logistics.
-                </p>
-                <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-100 dark:border-zinc-800 text-[10px] text-slate-400 dark:text-zinc-500 font-mono">
-                  <span>5 pages</span>
-                  <span className="bg-blue-50 dark:bg-blue-955/20 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded border border-blue-100 dark:border-blue-900/40 uppercase">Public</span>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
         </section>
       </main>

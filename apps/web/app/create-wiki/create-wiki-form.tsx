@@ -20,9 +20,15 @@ import { AiWikiSuggestion } from "@/lib/validation/wiki"
 
 interface CreateWikiFormProps {
   username: string
+  isWorkspaceLimitReached?: boolean
+  isAiLimitReached?: boolean
 }
 
-export default function CreateWikiForm({ username }: CreateWikiFormProps) {
+export default function CreateWikiForm({ 
+  username,
+  isWorkspaceLimitReached = false,
+  isAiLimitReached = false
+}: CreateWikiFormProps) {
   const router = useRouter()
   
   // Main form states
@@ -134,13 +140,30 @@ export default function CreateWikiForm({ username }: CreateWikiFormProps) {
   return (
     <div className="grid gap-8 lg:grid-cols-12 items-start">
       {/* Left Column: Form Controls (Col-span 7) */}
-      <form onSubmit={handleSubmit} className="lg:col-span-7 space-y-6 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm">
+      <form onSubmit={handleSubmit} className="lg:col-span-7 space-y-6 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm relative overflow-hidden">
+        {isPending && (
+          <div className="absolute inset-0 bg-white/60 dark:bg-zinc-950/60 backdrop-blur-[2px] flex flex-col items-center justify-center space-y-3.5 z-20 animate-fade-in">
+            <Loader2 className="h-8 w-8 text-[#6b38d4] dark:text-purple-400 animate-spin" />
+            <p className="text-xs font-mono font-bold text-slate-800 dark:text-zinc-200 bg-white/90 dark:bg-zinc-900/90 px-4 py-2 rounded-lg border border-slate-200 dark:border-zinc-800 shadow-md">
+              Creating wiki workspace & routing...
+            </p>
+          </div>
+        )}
         <div className="border-b border-slate-100 dark:border-zinc-800 pb-3 flex items-center gap-2">
           <FolderPlus className="h-5 w-5 text-[#6b38d4] dark:text-purple-400" />
           <h2 className="text-sm font-bold text-slate-800 dark:text-zinc-200 uppercase tracking-wider font-mono">
             New Wiki Details
           </h2>
         </div>
+
+        {isWorkspaceLimitReached && (
+          <div className="flex items-start gap-2.5 p-3.5 bg-amber-50 dark:bg-amber-950/20 border border-amber-250 dark:border-amber-900/50 rounded-xl text-xs text-amber-800 dark:text-amber-400 leading-normal">
+            <AlertCircle className="h-4.5 w-4.5 text-amber-600 shrink-0 mt-0.5" />
+            <div>
+              <span className="font-bold">Workspace Limit Reached:</span> You have reached the limit of 1 workspace for the Free tier. Please upgrade your plan on the profile page to create more workspaces.
+            </div>
+          </div>
+        )}
 
         {formError && (
           <div className="flex items-start gap-2 p-3 bg-red-50 dark:bg-red-950/20 border border-red-150 dark:border-red-900/50 rounded-lg text-xs text-red-800 dark:text-red-400 leading-normal">
@@ -273,8 +296,12 @@ export default function CreateWikiForm({ username }: CreateWikiFormProps) {
           </button>
           <Button
             type="submit"
-            disabled={isPending}
-            className="px-5 py-2 text-xs font-semibold bg-[#6b38d4] hover:bg-[#8455ef] text-white rounded-md flex items-center gap-1.5 shadow-sm cursor-pointer"
+            disabled={isPending || isWorkspaceLimitReached}
+            className={`px-5 py-2 text-xs font-semibold rounded-md flex items-center gap-1.5 shadow-sm ${
+              isWorkspaceLimitReached
+                ? "bg-slate-200 text-slate-400 dark:bg-zinc-800 dark:text-zinc-650 cursor-not-allowed"
+                : "bg-[#6b38d4] hover:bg-[#8455ef] text-white cursor-pointer"
+            }`}
           >
             {isPending ? (
               <>
@@ -288,7 +315,15 @@ export default function CreateWikiForm({ username }: CreateWikiFormProps) {
       </form>
 
       {/* Right Column: AI Assistant (Col-span 5) */}
-      <div className="lg:col-span-5 bg-gradient-to-br from-[#1a1c1b] to-slate-900 text-slate-105 border border-slate-800 rounded-xl p-6 shadow-md space-y-6">
+      <div className="lg:col-span-5 bg-gradient-to-br from-[#1a1c1b] to-slate-900 text-slate-105 border border-slate-800 rounded-xl p-6 shadow-md space-y-6 relative overflow-hidden">
+        {isAiLoading && (
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex flex-col items-center justify-center space-y-3.5 z-20 animate-fade-in">
+            <Loader2 className="h-8 w-8 text-[#6b38d4] animate-spin" />
+            <p className="text-xs font-mono font-bold text-slate-200 bg-slate-900/90 px-4 py-2 rounded-lg border border-slate-800 shadow-md">
+              Analyzing topic & generating suggestions...
+            </p>
+          </div>
+        )}
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
           <div className="flex items-center gap-2">
             <Sparkles className="h-4.5 w-4.5 text-[#6b38d4]" />
@@ -329,11 +364,24 @@ export default function CreateWikiForm({ username }: CreateWikiFormProps) {
             />
           </div>
 
+          {isAiLimitReached && (
+            <div className="flex items-start gap-2 p-3 bg-amber-955/20 border border-amber-900/40 rounded-lg text-[11px] text-amber-350 leading-normal">
+              <AlertCircle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+              <div>
+                <span className="font-bold">Credit Limit Reached:</span> You have used all 5 AI Name Generation credits on the Free tier. Please upgrade your plan to continue using the AI assistant.
+              </div>
+            </div>
+          )}
+
           <button
             type="button"
             onClick={handleGenerateIdeas}
-            className="w-full py-2 bg-[#6b38d4] hover:bg-[#8455ef] transition-colors rounded-md text-xs font-semibold text-white flex items-center justify-center gap-1.5 shadow-sm"
-            disabled={isAiLoading}
+            className={`w-full py-2 transition-colors rounded-md text-xs font-semibold text-white flex items-center justify-center gap-1.5 shadow-sm ${
+              isAiLimitReached && !isAiLoading
+                ? "bg-zinc-800 text-zinc-550 cursor-not-allowed border border-zinc-700 hover:bg-zinc-800"
+                : "bg-[#6b38d4] hover:bg-[#8455ef] cursor-pointer"
+            }`}
+            disabled={isAiLoading || isAiLimitReached}
           >
             {isAiLoading ? (
               <>
@@ -385,6 +433,15 @@ export default function CreateWikiForm({ username }: CreateWikiFormProps) {
           </div>
         )}
       </div>
+      <style jsx global>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .animate-fade-in {
+          animation: fadeIn 0.12s ease-out forwards;
+        }
+      `}</style>
     </div>
   )
 }
