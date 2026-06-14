@@ -26,7 +26,7 @@ export const WikiRepository = {
   async fetchUserWikis(userId: string): Promise<Wiki[]> {
     const { data, error } = await supabase
       .from("wikis")
-      .select("*")
+      .select("*, wiki_pages (count)")
       .eq("owner_id", userId)
       .order("updated_at", { ascending: false })
 
@@ -34,7 +34,10 @@ export const WikiRepository = {
       throw error
     }
 
-    return data as Wiki[]
+    return (data || []).map((wiki: any) => ({
+      ...wiki,
+      page_count: wiki.wiki_pages?.[0]?.count || 0,
+    })) as Wiki[]
   },
 
   /**

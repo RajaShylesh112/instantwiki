@@ -1,8 +1,9 @@
 import { cn } from "@/lib/utils"
 import { ExternalLink } from "lucide-react"
 import Link from "next/link"
+import { Button } from "@/components/ui/button"
 
-interface CustomLinkProps extends React.LinkHTMLAttributes<HTMLAnchorElement> {
+interface CustomLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   href: string
 }
 
@@ -17,26 +18,26 @@ const CustomLink = ({
 
   if (isInternalLink || isAnchorLink) {
     return (
-      <Link href={href} className={className} {...rest}>
-        {children}
-      </Link>
+      <Button variant="link" className={cn("h-auto p-0 text-inherit", className)} asChild>
+        <Link href={href} {...rest as any}>
+          {children}
+        </Link>
+      </Button>
     )
   }
 
   return (
-    <Link
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={cn(
-        "inline-flex items-center gap-1 align-baseline underline underline-offset-4",
-        className
-      )}
-      {...rest}
-    >
-      <span>{children}</span>
-      <ExternalLink className="ml-0.5 inline-block h-4 w-4" />
-    </Link>
+    <Button variant="link" className={cn("h-auto p-0 inline-flex items-center gap-1 align-baseline text-inherit", className)} asChild>
+      <Link
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        {...rest as any}
+      >
+        <span>{children}</span>
+        <ExternalLink className="ml-0.5 inline-block h-4 w-4" />
+      </Link>
+    </Button>
   )
 }
 

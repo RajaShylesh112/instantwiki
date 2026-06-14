@@ -3,9 +3,10 @@ import Link from "next/link";
 import { auth } from "auth";
 import { redirect } from "next/navigation";
 import Header from "@/components/header";
-import { Sparkles, FileText, Link as LinkIcon, Network, Compass, ArrowRight } from "lucide-react";
+import { Compass, FileText, Link as LinkIcon, Network, ArrowRight } from "lucide-react";
+import { Footer } from "@/components/ui/footer";
 
-;
+import { AnimatedBackgroundLines } from "@/components/ui/animated-background-lines";
 
 export default async function LandingPage() {
   const session = await auth();
@@ -34,73 +35,79 @@ export default async function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAFAF8] dark:bg-zinc-950 text-[#1A1C1B] dark:text-zinc-100">
+    <div className="min-h-screen flex flex-col bg-[#FAFAF8] dark:bg-zinc-950 text-[#1A1C1B] dark:text-zinc-100 relative overflow-hidden">
+      {/* Ambient background glowing blobs for the whole page */}
+      <div className="fixed top-[20%] -left-[20%] w-[50%] h-[60%] bg-[#6b38d4]/15 dark:bg-[#6b38d4]/10 rounded-full blur-[120px] pointer-events-none z-0 mix-blend-multiply dark:mix-blend-screen opacity-70" />
+      <div className="fixed top-[50%] -right-[20%] w-[50%] h-[60%] bg-[#006b5e]/15 dark:bg-[#006b5e]/10 rounded-full blur-[120px] pointer-events-none z-0 mix-blend-multiply dark:mix-blend-screen opacity-70" />
+
       {/* Navigation Header */}
       <Header />
 
       {/* Main Content */}
       <main className="flex-1">
         {/* Centered Hero Section */}
-        <section className="max-w-[1200px] mx-auto px-16 pt-24 pb-20 text-center space-y-8">
-          <div className="inline-block px-4 py-1 bg-[#6ef9e2]/25 text-[#007164] rounded-full text-xs font-bold font-mono tracking-wider">
-            REVOLUTIONIZE YOUR KNOWLEDGE
-          </div>
+        <AnimatedBackgroundLines>
+          <section className="max-w-[1200px] mx-auto px-6 md:px-16 pt-24 md:pt-32 pb-16 md:pb-24 text-center space-y-6 md:space-y-8 relative z-10">
+            <div className="inline-block px-4 py-1 bg-[#6ef9e2]/25 text-[#007164] rounded-full text-xs font-bold font-mono tracking-wider">
+              REVOLUTIONIZE YOUR KNOWLEDGE
+            </div>
 
-          <h1 className="text-5xl font-extrabold sm:text-6xl tracking-tight text-[#1a1c1b] dark:text-white leading-tight">
-            Transform your documents into <br />
-            <span className="bg-gradient-to-r from-[#6b38d4] via-[#8455ef] to-[#6d3bd7] bg-clip-text text-transparent">
-              structured knowledge webs
-            </span>
-          </h1>
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-[#1a1c1b] dark:text-white leading-tight">
+              Turn your scattered documents into a <br className="hidden sm:block" />
+              <span className="bg-gradient-to-r from-[#6b38d4] via-[#8455ef] to-[#6d3bd7] bg-clip-text text-transparent">
+                beautiful, searchable wiki
+              </span>
+            </h1>
 
-          <p className="max-w-2xl mx-auto text-[#494454] dark:text-zinc-300 leading-relaxed text-lg font-serif">
-            Upload PDFs, notes, research papers, or documentation. Instant Wiki turns them into a searchable website with pages, links, and knowledge graphs.
-          </p>
+            <p className="max-w-2xl mx-auto text-[#494454] dark:text-zinc-300 leading-relaxed text-lg font-serif">
+              Upload PDFs, notes, research papers, or documentation. Instant Wiki turns them into a searchable website with pages, links, and knowledge graphs.
+            </p>
 
-          {/* Action buttons */}
-          <div className="flex justify-center gap-4 pt-4">
-            {session?.user ? (
-              <Link href="/workspaces">
-                <button className="bg-[#6b38d4] text-white hover:brightness-110 shadow-sm transition-all font-semibold px-8 py-3 rounded-lg text-sm active:scale-95">
-                  Go to Workspaces
-                </button>
-              </Link>
-            ) : (
-              <>
-                <Link href="/signup">
-                  <button className="bg-[#6b38d4] text-white hover:brightness-110 shadow-sm transition-all font-semibold px-8 py-3 rounded-lg text-sm active:scale-95">
-                    Create Wiki
+            {/* Action buttons */}
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4 pt-4">
+              {session?.user ? (
+                <Link href="/workspaces" className="w-full sm:w-auto">
+                  <button className="w-full sm:w-auto bg-[#6b38d4] text-white hover:brightness-110 shadow-sm transition-all font-semibold px-8 py-3 rounded-lg text-sm active:scale-95">
+                    Go to Workspaces
                   </button>
                 </Link>
-                <Link href="/signin">
-                  <button className="bg-transparent border border-slate-200 dark:border-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-900 text-slate-700 dark:text-zinc-300 transition-all font-semibold px-8 py-3 rounded-lg text-sm">
-                    Sign In
-                  </button>
-                </Link>
-              </>
-            )}
-          </div>
-        </section>
+              ) : (
+                <>
+                  <Link href="/signup" className="w-full sm:w-auto">
+                    <button className="w-full sm:w-auto bg-[#6b38d4] text-white hover:brightness-110 shadow-sm transition-all font-semibold px-8 py-3 rounded-lg text-sm active:scale-95">
+                      Create Wiki
+                    </button>
+                  </Link>
+                  <Link href="/signin" className="w-full sm:w-auto">
+                    <button className="w-full sm:w-auto bg-white/50 dark:bg-black/50 backdrop-blur border border-slate-200 dark:border-zinc-800 hover:bg-slate-50/80 dark:hover:bg-zinc-900/80 text-slate-700 dark:text-zinc-300 transition-all font-semibold px-8 py-3 rounded-lg text-sm">
+                      Sign In
+                    </button>
+                  </Link>
+                </>
+              )}
+            </div>
+          </section>
+        </AnimatedBackgroundLines>
 
         {/* Transformation Showcase Section */}
-        <section className="max-w-[1200px] mx-auto px-16 py-16">
+        <section className="max-w-[1200px] mx-auto px-6 md:px-16 py-12 md:py-16">
           <div className="flex flex-col items-center">
             <h2 className="text-3xl font-extrabold text-[#1a1c1b] dark:text-white tracking-tight mb-8">
               The Transformation
             </h2>
-            <div className="w-full rounded-2xl overflow-hidden shadow-sm border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 md:p-8 hover:border-[#6b38d4]/15 transition-colors duration-300">
+            <div className="w-full rounded-3xl overflow-hidden shadow-xl border border-slate-200/60 dark:border-zinc-800/60 bg-gradient-to-br from-[#6b38d4]/10 via-white to-[#006b5e]/10 dark:from-[#6b38d4]/20 dark:via-zinc-900/90 dark:to-[#006b5e]/20 p-6 md:p-8 hover:border-[#6b38d4]/30 transition-all duration-500 backdrop-blur-md">
               <img
                 src="/images/stitch_ai_powered_wiki_builder (2)/screen.png"
                 alt="Before and After Transformation"
-                className="w-full h-auto object-cover rounded-xl border border-slate-100 dark:border-zinc-800"
+                className="w-full h-auto object-cover rounded-xl border border-white/50 dark:border-white/10 shadow-2xl"
               />
             </div>
           </div>
         </section>
 
         {/* Interactive Wiki Preview (Luminous Block) */}
-        <section className="bg-[#f4f4f2] dark:bg-zinc-900/40 py-24 border-t border-slate-200 dark:border-zinc-800 border-b dark:border-zinc-800">
-          <div className="max-w-[1200px] mx-auto px-16 text-center space-y-12">
+        <section className="bg-[#f4f4f2]/50 dark:bg-zinc-900/20 py-16 md:py-24 border-t border-slate-200 dark:border-zinc-800 border-b dark:border-zinc-800">
+          <div className="max-w-[1200px] mx-auto px-6 md:px-16 text-center space-y-8 md:space-y-12">
             <div className="space-y-3">
               <h2 className="text-3xl font-extrabold text-[#1a1c1b] dark:text-white tracking-tight">
                 Interactive Wiki Preview
@@ -111,12 +118,12 @@ export default async function LandingPage() {
             </div>
             
             <div className="relative group max-w-4xl mx-auto">
-              <div className="absolute -inset-1 bg-gradient-to-r from-[#6b38d4]/20 to-[#006b5e]/20 rounded-2xl blur opacity-30 group-hover:opacity-50 transition duration-1000" />
-              <div className="relative bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 overflow-hidden shadow-2xl">
+              <div className="absolute -inset-2 bg-gradient-to-r from-[#6b38d4] to-[#006b5e] rounded-3xl blur-xl opacity-20 group-hover:opacity-40 transition duration-1000" />
+              <div className="relative bg-gradient-to-bl from-[#006b5e]/15 via-white to-[#6b38d4]/15 dark:from-[#006b5e]/25 dark:via-zinc-900/95 dark:to-[#6b38d4]/25 rounded-3xl border border-white/60 dark:border-zinc-700/50 overflow-hidden shadow-2xl p-4 md:p-6 backdrop-blur-md">
                 <img
                   src="/images/stitch_ai_powered_wiki_builder (3)/screen.png"
                   alt="Knowledge Graph Preview"
-                  className="w-full h-auto block"
+                  className="w-full h-auto block rounded-xl border border-white/50 dark:border-white/10 shadow-xl"
                 />
               </div>
             </div>
@@ -124,7 +131,7 @@ export default async function LandingPage() {
         </section>
 
         {/* Features Bento Grid */}
-        <section className="max-w-[1200px] mx-auto px-16 py-24 space-y-12">
+        <section className="max-w-[1200px] mx-auto px-6 md:px-16 py-16 md:py-24 space-y-8 md:space-y-12">
           <h2 className="text-3xl font-extrabold text-[#1a1c1b] dark:text-white tracking-tight text-center">
             What Instant Wiki Builds
           </h2>
@@ -171,7 +178,7 @@ export default async function LandingPage() {
         </section>
 
         {/* How It Works */}
-        <section className="max-w-[1200px] mx-auto px-16 py-24 space-y-16 border-t border-slate-100 dark:border-zinc-800">
+        <section className="max-w-[1200px] mx-auto px-6 md:px-16 py-16 md:py-24 space-y-12 md:space-y-16 border-t border-slate-100 dark:border-zinc-800">
           <div className="text-center">
             <h2 className="text-3xl font-extrabold text-[#1a1c1b] dark:text-white tracking-tight">
               How It Works
@@ -217,8 +224,8 @@ export default async function LandingPage() {
         </section>
 
         {/* Recently Published Wikis Section / Public Wiki Gallery */}
-        <section className="bg-slate-50/50 dark:bg-zinc-900/30 border-t border-slate-200/80 dark:border-zinc-800 py-20">
-          <div className="max-w-[1200px] mx-auto px-16 space-y-10">
+        <section className="bg-slate-50/50 dark:bg-zinc-900/30 border-t border-slate-200/80 dark:border-zinc-800 py-16 md:py-20">
+          <div className="max-w-[1200px] mx-auto px-6 md:px-16 space-y-8 md:space-y-10">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
               <div className="space-y-1">
                 <h2 className="text-3xl font-extrabold text-[#1a1c1b] dark:text-white tracking-tight flex items-center gap-2">
@@ -236,7 +243,7 @@ export default async function LandingPage() {
                 No public wikis published yet. Be the first to publish!
               </div>
             ) : (
-              <div className="grid gap-6 sm:grid-cols-3">
+              <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 {publicWikis.map((wiki) => {
                   const username = wiki.users?.username || "sandbox";
                   const pageCount = wiki.wiki_pages?.[0]?.count || 0;
@@ -270,27 +277,7 @@ export default async function LandingPage() {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-[#FAFAF8] dark:bg-zinc-950 border-t border-slate-200/80 dark:border-zinc-800 py-8">
-        <div className="max-w-[1200px] mx-auto px-16 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="text-center md:text-left space-y-1">
-            <span className="font-mono text-xs font-bold uppercase tracking-widest text-[#1a1c1b] dark:text-white">
-              INSTANT WIKI
-            </span>
-            <p className="text-xs text-[#494454] dark:text-zinc-400">Built by creators. Powered by Instant Wiki.</p>
-          </div>
-          <div className="flex flex-col items-center md:items-end gap-2 text-xs font-mono text-[#494454] dark:text-zinc-400">
-            <div className="flex gap-6">
-              <a className="hover:text-[#6b38d4] dark:hover:text-purple-400 transition-colors" href="#">Privacy</a>
-              <a className="hover:text-[#6b38d4] dark:hover:text-purple-400 transition-colors" href="#">Terms</a>
-              <a className="hover:text-[#6b38d4] dark:hover:text-purple-400 transition-colors" href="#">Support</a>
-            </div>
-            <span className="text-[#006b5e] dark:text-emerald-400 bg-[#6ef9e2]/15 dark:bg-emerald-950/20 px-3 py-0.5 rounded-full text-[10px]">
-              12,483 pages generated today
-            </span>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

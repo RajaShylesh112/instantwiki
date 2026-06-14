@@ -29,7 +29,11 @@ export default async function UserButton() {
                   `https://api.dicebear.com/9.x/thumbs/svg?seed=${encodeURIComponent(session.user.email ?? "avatar")}`
                 }
                 alt={session.user.name ?? ""}
+                referrerPolicy="no-referrer"
               />
+              <AvatarFallback className="bg-[#6b38d4]/10 text-[#6b38d4] font-medium text-xs">
+                {session.user.name?.[0]?.toUpperCase() || session.user.email?.[0]?.toUpperCase() || "U"}
+              </AvatarFallback>
             </Avatar>
           </Button>
         </DropdownMenuTrigger>

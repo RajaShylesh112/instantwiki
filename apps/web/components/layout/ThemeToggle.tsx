@@ -34,14 +34,14 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="inline-flex items-center justify-center h-9 w-9 rounded-xl border border-slate-200 dark:border-zinc-800 hover:border-slate-900 dark:hover:border-zinc-700 bg-white dark:bg-zinc-900 text-slate-650 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white transition-all duration-200 shadow-sm cursor-pointer"
+      className="inline-flex items-center justify-center h-9 w-9 rounded-xl border border-slate-200 dark:border-zinc-800 hover:border-slate-900 dark:hover:border-zinc-700 bg-white dark:bg-zinc-900 text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white transition-all duration-200 shadow-sm cursor-pointer"
       aria-label="Toggle Theme"
       id="btn-theme-toggle"
     >
       {theme === "light" ? (
-        <Moon className="h-4.5 w-4.5 transition-transform hover:rotate-12" />
+        <Moon className="h-5 w-5 transition-transform hover:rotate-12" />
       ) : (
-        <Sun className="h-4.5 w-4.5 transition-transform hover:scale-110" />
+        <Sun className="h-5 w-5 transition-transform hover:scale-110" />
       )}
     </button>
   )

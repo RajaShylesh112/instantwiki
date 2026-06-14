@@ -4,6 +4,8 @@ import React, { useState } from "react"
 import Link from "next/link"
 import { ArrowRight, Layers, FileText, ChevronDown, ChevronUp, Loader } from "lucide-react"
 import { renderMarkdownBody } from "../../lib/markdown-renderer"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 
 interface TopicCardProps {
   wikiId: string
@@ -80,37 +82,39 @@ export default function TopicCard({
   const isGenerating = status === "GENERATING" || loading
 
   return (
-    <div className="flex flex-col justify-between p-5 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg shadow-sm hover:shadow-md hover:border-purple-200 dark:hover:border-purple-800 transition-all duration-200 group relative">
-      <div className="space-y-2.5">
+    <Card className="flex flex-col justify-between group hover:border-purple-200 dark:hover:border-purple-800 transition-all duration-200 shadow-sm hover:shadow-md">
+      <CardHeader className="p-5 pb-0">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="font-bold text-slate-800 dark:text-zinc-100 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors text-base font-serif">
+          <CardTitle className="font-serif text-base group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
             {title}
-          </h3>
+          </CardTitle>
           
           {isPending && !loading && (
-            <span className="text-[9px] font-mono font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/20 px-2 py-0.5 border border-amber-150 dark:border-amber-900/50 rounded-sm shrink-0">
+            <Badge variant="outline" className="text-[9px] px-2 py-0 font-mono text-amber-600 border-amber-200 bg-amber-50 dark:text-amber-400 dark:border-amber-900/50 dark:bg-amber-950/20 shrink-0">
               Pending
-            </span>
+            </Badge>
           )}
           {isGenerating && (
-            <span className="text-[9px] font-mono font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/20 px-2 py-0.5 border border-blue-200 dark:border-blue-900/50 rounded-sm shrink-0 animate-pulse flex items-center gap-1">
+            <Badge variant="outline" className="text-[9px] px-2 py-0 font-mono text-blue-600 border-blue-200 bg-blue-50 dark:text-blue-400 dark:border-blue-900/50 dark:bg-blue-950/20 shrink-0 animate-pulse flex items-center gap-1">
               <Loader className="h-2 w-2 animate-spin" />
               Synthesizing...
-            </span>
+            </Badge>
           )}
           {!isPending && !isGenerating && (
-            <span className="text-[9px] font-mono font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 px-2 py-0.5 border border-emerald-150 dark:border-emerald-900/50 rounded-sm shrink-0">
+            <Badge variant="outline" className="text-[9px] px-2 py-0 font-mono text-emerald-600 border-emerald-200 bg-emerald-50 dark:text-emerald-400 dark:border-emerald-900/50 dark:bg-emerald-950/20 shrink-0">
               Generated
-            </span>
+            </Badge>
           )}
         </div>
 
-        <p className="text-xs text-slate-500 dark:text-zinc-400 leading-relaxed line-clamp-3">
+        <CardDescription className="text-xs mt-2.5 leading-relaxed line-clamp-3">
           {summary || "No description provided for this topic."}
-        </p>
+        </CardDescription>
+      </CardHeader>
 
+      <CardContent className="px-5 pt-0 mt-4">
         {isExpanded && (
-          <div className="mt-4 p-4 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-md font-serif text-sm text-slate-700 dark:text-zinc-300 leading-relaxed space-y-3 overflow-hidden">
+          <div className="p-4 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-md font-serif text-sm text-slate-700 dark:text-zinc-300 leading-relaxed space-y-3 overflow-hidden">
             {loading ? (
               <div className="flex flex-col items-center justify-center py-6 text-xs text-slate-400 dark:text-zinc-500 font-mono gap-2">
                 <Loader className="h-5 w-5 animate-spin text-purple-600" />
@@ -125,16 +129,16 @@ export default function TopicCard({
             )}
           </div>
         )}
-      </div>
+      </CardContent>
 
-      <div className="mt-5 pt-3 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between text-slate-400 dark:text-zinc-500 text-[10px] font-mono">
+      <CardFooter className="px-5 pb-5 pt-3 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between text-slate-400 dark:text-zinc-500 text-[10px] font-mono mt-auto">
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-1">
-            <Layers className="h-3.5 w-3.5 text-slate-400 dark:text-zinc-500" />
+            <Layers className="h-3.5 w-3.5" />
             {subtopicsCount} subtopics
           </span>
           <span className="flex items-center gap-1">
-            <FileText className="h-3.5 w-3.5 text-slate-400 dark:text-zinc-500" />
+            <FileText className="h-3.5 w-3.5" />
             {sourcesCount} sources
           </span>
         </div>
@@ -163,7 +167,7 @@ export default function TopicCard({
             <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
           </Link>
         </div>
-      </div>
-    </div>
+      </CardFooter>
+    </Card>
   )
 }

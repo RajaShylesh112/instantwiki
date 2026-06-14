@@ -1,177 +1,123 @@
-import { supabase } from "@/lib/supabase";
-import { auth } from "auth"
-import Header from "@/components/header"
-import PricingButton from "./pricing-button"
-import { Check, X } from "lucide-react"
+import Header from "@/components/header";
+import { Footer } from "@/components/ui/footer";
+import { Check, Zap, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
+export const metadata = {
+  title: "Pricing | instant.wiki",
+  description: "Simple, transparent pricing for your documentation needs.",
+};
 
-
-export const dynamic = "force-dynamic"
-
-export default async function PricingPage() {
-  const session = await auth()
-  let plan: "FREE" | "PRO" = "FREE"
-
-  if (session?.user?.email) {
-    try {
-      const { data: dbUser } = await supabase
-        .from("users")
-        .select("plan")
-        .eq("email", session.user.email)
-        .maybeSingle()
-      if (dbUser) {
-        plan = dbUser.plan as "FREE" | "PRO"
-      }
-    } catch (e) {
-      console.error("Error loading user plan on pricing page:", e)
-    }
-  }
-
+export default function PricingPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAFAF8] dark:bg-zinc-950 text-[#1A1C1B] dark:text-zinc-100">
+    <div className="min-h-screen flex flex-col bg-[#FAFAF8] dark:bg-zinc-950 text-slate-900 dark:text-zinc-150 font-sans">
       <Header />
-      
-      <main className="flex-1 py-16 max-w-5xl mx-auto px-6 w-full space-y-12">
-        <div className="text-center space-y-3">
-          <div className="inline-block px-4 py-1 bg-[#6b38d4]/10 dark:bg-purple-950/35 text-[#6b38d4] dark:text-purple-400 rounded-full text-xs font-bold font-mono tracking-wider">
-            TRANSPARENT PRICING
-          </div>
-          <h1 className="text-4xl font-extrabold sm:text-5xl tracking-tight leading-tight text-[#1a1c1b] dark:text-white">
-            Choose your knowledge depth
+
+      <main className="flex-1 py-16 px-4 md:px-6 max-w-[1200px] mx-auto w-full">
+        <div className="text-center max-w-2xl mx-auto mb-12 space-y-4">
+          <h1 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900 dark:text-white">
+            Simple, transparent pricing
           </h1>
-          <p className="max-w-md mx-auto text-slate-500 dark:text-zinc-400 text-sm font-serif">
-            Scale your document partitions, page extraction outputs, and AI credits with ease.
+          <p className="text-lg text-slate-500 dark:text-zinc-400 font-serif">
+            No hidden fees. Choose the perfect plan for your knowledge base and documentation needs.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto items-stretch">
+        {/* 2-Column Grid with Bento Card Styles */}
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           
-          {/* FREE Tier Card */}
-          <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-8 shadow-xs flex flex-col justify-between relative overflow-hidden">
-            <div className="space-y-6">
-              <div className="space-y-2 text-left">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-550 font-mono">
-                  Base Plan
-                </span>
-                <h3 className="text-2xl font-extrabold text-slate-800 dark:text-zinc-100">
-                  Free Tier
-                </h3>
-                <div className="flex items-baseline gap-1 mt-2">
-                  <span className="text-4xl font-extrabold tracking-tight text-[#1a1c1b] dark:text-white">$0</span>
-                  <span className="text-xs text-slate-400 font-mono">/ month</span>
-                </div>
-                <p className="text-xs text-slate-500 dark:text-zinc-400 pt-1">
-                  Perfect for small reading clubs, research projects, or evaluation.
-                </p>
-              </div>
-
-              <div className="border-t border-slate-100 dark:border-zinc-800 pt-6 space-y-4">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-550 font-mono text-left">
-                  Included Limits
-                </h4>
-                <ul className="space-y-3 text-xs leading-normal">
-                  <li className="flex items-start gap-2.5 text-left">
-                    <Check className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                    <span><strong className="font-semibold text-slate-700 dark:text-zinc-300">1 Workspace</strong> (Wiki partition)</span>
-                  </li>
-                  <li className="flex items-start gap-2.5 text-left">
-                    <Check className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                    <span><strong className="font-semibold text-slate-700 dark:text-zinc-300">25 Wiki Pages</strong> max capacity</span>
-                  </li>
-                  <li className="flex items-start gap-2.5 text-left">
-                    <Check className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                    <span><strong className="font-semibold text-slate-700 dark:text-zinc-300">10 Documents</strong> upload quota</span>
-                  </li>
-                  <li className="flex items-start gap-2.5 text-left">
-                    <Check className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                    <span><strong className="font-semibold text-slate-700 dark:text-zinc-300">5 AI Generation Credits</strong> (Total limit)</span>
-                  </li>
-                  <li className="flex items-start gap-2.5 text-left">
-                    <Check className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                    <span><strong className="font-semibold text-slate-700 dark:text-zinc-300">50 MB Storage</strong> cap (File uploads)</span>
-                  </li>
-                  <li className="flex items-start gap-2.5 text-left text-slate-400 dark:text-zinc-650">
-                    <X className="h-4 w-4 text-red-400 dark:text-red-900/30 shrink-0 mt-0.5" />
-                    <span>Stripe Billing Portal Management</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            <div className="pt-8 mt-6">
-              <button
-                disabled
-                className="w-full py-3 bg-slate-100 dark:bg-zinc-800 text-slate-450 dark:text-zinc-500 rounded-lg text-sm font-bold tracking-wide cursor-not-allowed border border-transparent"
-              >
-                Default Plan
-              </button>
-            </div>
-          </div>
-
-          {/* PRO Tier Card */}
-          <div className="rounded-2xl border-2 border-[#6b38d4] bg-white dark:bg-zinc-900 p-8 shadow-md flex flex-col justify-between relative overflow-hidden">
-            {/* Pop tag */}
-            <div className="absolute top-0 right-0 bg-[#6b38d4] text-white text-[9px] font-bold tracking-widest uppercase py-1 px-4 rounded-bl-lg font-mono">
-              RECOMMENDED
+          {/* HOBBY TIER */}
+          <div className="border border-slate-200 dark:border-zinc-800 rounded-3xl p-8 bg-white dark:bg-zinc-900 flex flex-col shadow-sm hover:shadow-xl hover:border-slate-300 dark:hover:border-zinc-700 transition-all duration-300 relative overflow-hidden group">
+            {/* Background pattern */}
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none opacity-50 dark:opacity-20" />
+            
+            <div className="relative z-10 mb-6 space-y-2">
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-[#006b5e]" />
+                Hobby
+              </h2>
+              <p className="text-sm text-slate-500 dark:text-zinc-400">Perfect for side projects and personal notes.</p>
             </div>
             
-            <div className="space-y-6">
-              <div className="space-y-2 text-left">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#6b38d4] dark:text-purple-400 font-mono">
-                  Scale Plan
-                </span>
-                <h3 className="text-2xl font-extrabold text-slate-800 dark:text-zinc-100">
-                  Pro Plan
-                </h3>
-                <div className="flex items-baseline gap-1 mt-2">
-                  <span className="text-4xl font-extrabold tracking-tight text-[#1a1c1b] dark:text-white">$5</span>
-                  <span className="text-xs text-slate-400 font-mono">/ month</span>
-                </div>
-                <p className="text-xs text-slate-500 dark:text-zinc-400 pt-1">
-                  For creators, researchers, and professional teams mapping vast libraries.
-                </p>
-              </div>
-
-              <div className="border-t border-slate-100 dark:border-zinc-800 pt-6 space-y-4">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-[#6b38d4] dark:text-purple-400 font-mono text-left">
-                  Included Limits
-                </h4>
-                <ul className="space-y-3 text-xs leading-normal">
-                  <li className="flex items-start gap-2.5 text-left">
-                    <Check className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                    <span><strong className="font-semibold text-slate-700 dark:text-zinc-300">Unlimited Workspaces</strong> (Wikis)</span>
-                  </li>
-                  <li className="flex items-start gap-2.5 text-left">
-                    <Check className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                    <span><strong className="font-semibold text-slate-700 dark:text-zinc-300">Unlimited Wiki Pages</strong> generated</span>
-                  </li>
-                  <li className="flex items-start gap-2.5 text-left">
-                    <Check className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                    <span><strong className="font-semibold text-slate-700 dark:text-zinc-300">Unlimited Documents</strong> upload quota</span>
-                  </li>
-                  <li className="flex items-start gap-2.5 text-left">
-                    <Check className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                    <span><strong className="font-semibold text-slate-700 dark:text-zinc-300">Unlimited AI Generations</strong> (No credit caps)</span>
-                  </li>
-                  <li className="flex items-start gap-2.5 text-left">
-                    <Check className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                    <span><strong className="font-semibold text-slate-700 dark:text-zinc-300">2 GB Storage</strong> cap (File uploads)</span>
-                  </li>
-                  <li className="flex items-start gap-2.5 text-left">
-                    <Check className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                    <span>Stripe Billing Portal Management (Cancel anytime)</span>
-                  </li>
-                </ul>
-              </div>
+            <div className="relative z-10 mb-8 flex items-baseline gap-1">
+              <span className="text-5xl font-black text-slate-900 dark:text-white">$0</span>
+              <span className="text-slate-500 dark:text-zinc-400 font-medium">/forever</span>
             </div>
+            
+            <ul className="relative z-10 space-y-4 mb-8 flex-1">
+              {[
+                "1 Workspace",
+                "Up to 25 AI-generated pages",
+                "Basic analytics",
+                "Public workspaces only",
+                "Community support",
+              ].map((feature, i) => (
+                <li key={i} className="flex items-center gap-3 text-sm text-slate-600 dark:text-zinc-300">
+                  <Check className="h-5 w-5 text-[#006b5e] dark:text-emerald-400 shrink-0" />
+                  <span>{feature}</span>
+                </li>
+              ))}
+            </ul>
 
-            <div className="pt-8 mt-6">
-              <PricingButton plan={plan} isLoggedIn={!!session} />
-            </div>
+            <Link href="/create-wiki" className="block w-full mt-auto relative z-10">
+              <Button variant="outline" className="w-full h-12 border-slate-200 dark:border-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-900 dark:text-white font-bold rounded-xl text-sm transition-colors shadow-sm">
+                Get Started for Free
+              </Button>
+            </Link>
           </div>
 
+          {/* PRO TIER */}
+          <div className="border border-slate-200 dark:border-zinc-800 rounded-3xl p-8 bg-white dark:bg-zinc-900 flex flex-col shadow-sm hover:shadow-xl hover:border-[#6b38d4]/50 dark:hover:border-purple-500/50 transition-all duration-300 relative overflow-hidden group">
+            <div className="absolute top-0 right-8 -translate-y-1/2 z-20">
+              <span className="bg-[#6b38d4] text-white text-[10px] font-bold uppercase tracking-widest py-1.5 px-3 rounded-full shadow-md">
+                Most Popular
+              </span>
+            </div>
+            
+            {/* Background glow effect */}
+            <div className="absolute inset-0 bg-gradient-to-br from-[#6b38d4]/5 to-transparent dark:from-purple-500/10 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            {/* Background pattern */}
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none opacity-50 dark:opacity-20" />
+            
+            <div className="relative z-10 mb-6 space-y-2">
+              <h2 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
+                <Zap className="h-5 w-5 text-[#6b38d4]" />
+                Pro
+              </h2>
+              <p className="text-sm text-slate-500 dark:text-zinc-400 font-medium">For creators and small teams building serious docs.</p>
+            </div>
+            
+            <div className="relative z-10 mb-8 flex items-baseline gap-1">
+              <span className="text-5xl font-black text-slate-900 dark:text-white tracking-tight">$12</span>
+              <span className="text-slate-500 dark:text-zinc-400 font-medium">/month</span>
+            </div>
+            
+            <ul className="relative z-10 space-y-4 mb-8 flex-1">
+              {[
+                "Unlimited Workspaces",
+                "Unlimited AI page generations",
+                "Private and Unlisted workspaces",
+                "Custom domains (Coming soon)",
+                "Priority email support",
+              ].map((feature, i) => (
+                <li key={i} className="flex items-start gap-3 text-sm text-slate-700 dark:text-zinc-300">
+                  <Check className="h-5 w-5 text-[#6b38d4] dark:text-purple-400 shrink-0" />
+                  <span className="font-semibold leading-tight">{feature}</span>
+                </li>
+              ))}
+            </ul>
+
+            <Link href="/billing" className="block w-full mt-auto relative z-10">
+              <Button className="w-full h-12 bg-[#6b38d4] hover:bg-[#5a2eab] text-white font-bold rounded-xl text-sm transition-all shadow-md group-hover:shadow-lg group-hover:shadow-[#6b38d4]/20">
+                Upgrade to Pro
+              </Button>
+            </Link>
+          </div>
         </div>
       </main>
+
+      <Footer />
     </div>
-  )
+  );
 }

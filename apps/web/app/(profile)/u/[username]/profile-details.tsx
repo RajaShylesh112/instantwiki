@@ -33,30 +33,11 @@ interface ProfileDetailsProps {
 
 export default function ProfileDetails({ user, isOwner, isMocked, usage }: ProfileDetailsProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isPlanUpdating, setIsPlanUpdating] = useState(false)
-  const [planError, setPlanError] = useState<string | null>(null)
-
-  const handlePlanToggle = async () => {
-    setIsPlanUpdating(true)
-    setPlanError(null)
-    
+  const handlePlanToggle = () => {
     if (usage.plan === "FREE") {
       window.location.href = "/pricing"
-      return
-    }
-
-    try {
-      const res = await fetch("/api/stripe/portal", { method: "POST" })
-      const data = await res.json()
-      if (data.url) {
-        window.location.href = data.url
-      } else {
-        setPlanError(data.error || "Failed to load Stripe billing portal.")
-        setIsPlanUpdating(false)
-      }
-    } catch (err) {
-      setPlanError("An unexpected error occurred loading Stripe portal.")
-      setIsPlanUpdating(false)
+    } else {
+      window.location.href = "mailto:support@instant.wiki?subject=Manage%20Subscription"
     }
   }
 
@@ -124,12 +105,7 @@ export default function ProfileDetails({ user, isOwner, isMocked, usage }: Profi
 
       {/* SaaS Usage & Plan Details */}
       <div className="border-t border-slate-100 dark:border-zinc-800 pt-5 space-y-5">
-        {planError && (
-          <div className="flex items-start gap-2 p-2.5 bg-red-50 dark:bg-red-955/20 border border-red-150 dark:border-red-900/50 rounded-xl text-xs text-red-805 dark:text-red-400 leading-normal">
-            <AlertTriangle className="h-4 w-4 text-red-650 shrink-0 mt-0.5" />
-            <span>{planError}</span>
-          </div>
-        )}
+        {/* Removed plan error banner */}
 
         {/* Plan Header */}
         <div className="flex justify-between items-center text-xs font-mono">
@@ -145,10 +121,9 @@ export default function ProfileDetails({ user, isOwner, isMocked, usage }: Profi
             {isOwner && !isMocked && (
               <button
                 onClick={handlePlanToggle}
-                disabled={isPlanUpdating}
                 className="text-[10px] font-bold text-indigo-500 hover:text-indigo-650 dark:hover:text-indigo-400 transition-colors uppercase font-mono cursor-pointer disabled:opacity-50"
               >
-                {isPlanUpdating ? "Loading..." : usage.plan === "FREE" ? "Upgrade" : "Manage"}
+                {usage.plan === "FREE" ? "Upgrade" : "Manage"}
               </button>
             )}
           </div>

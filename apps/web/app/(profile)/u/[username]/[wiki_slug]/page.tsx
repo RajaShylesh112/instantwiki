@@ -511,7 +511,7 @@ export default async function WikiPage({ params }: WikiPageProps) {
                             {domain.title}
                           </h3>
                         </div>
-                        <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-400 border border-purple-100 dark:border-purple-900/30">
+                        <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-purple-50 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-100 dark:border-purple-500/30">
                           {children.length} {children.length === 1 ? "Subtopic" : "Subtopics"}
                         </span>
                       </div>
@@ -523,7 +523,7 @@ export default async function WikiPage({ params }: WikiPageProps) {
                             <Link 
                               key={sub.id} 
                               href={`/u/${username}/${wiki_slug}/${sub.slug}`}
-                              className="text-xs px-2.5 py-1 rounded-lg bg-slate-50/70 dark:bg-zinc-850 hover:bg-purple-50 dark:hover:bg-purple-950/35 text-slate-650 dark:text-zinc-400 hover:text-[#6b38d4] dark:hover:text-purple-400 transition-all font-medium border border-slate-100 dark:border-zinc-800/80"
+                              className="text-xs px-2.5 py-1 rounded-lg bg-slate-50/70 dark:bg-zinc-800 hover:bg-purple-50 dark:hover:bg-purple-900/40 text-slate-650 dark:text-zinc-300 hover:text-[#6b38d4] dark:hover:text-purple-300 transition-all font-medium border border-slate-100 dark:border-zinc-700/80"
                             >
                               {sub.title}
                             </Link>

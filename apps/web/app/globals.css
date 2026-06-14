@@ -83,16 +83,16 @@
   }
 
   .dark {
-    --background: 240 10% 4%; /* Deep slate black #0a0a0c */
-    --foreground: 240 5% 90%; /* Muted light gray #e4e4e7 */
+    --background: 240 5% 13%; /* Lighter dark mode background ~zinc-850 */
+    --foreground: 240 5% 90%; 
     
-    --card: 240 10% 6%; /* #0f0f12 */
+    --card: 240 5% 16%; /* Lighter card background ~zinc-800 */
     --card-foreground: 240 5% 90%;
 
-    --popover: 240 10% 6%;
+    --popover: 240 5% 16%;
     --popover-foreground: 240 5% 90%;
 
-    --primary: 259 80% 64%; /* Lighter purple for dark mode #8b5cf6 */
+    --primary: 259 80% 64%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 172 80% 40%;
@@ -101,8 +101,8 @@
     --tertiary: 39 80% 45%;
     --on-tertiary: 0 0% 100%;
 
-    --muted: 240 6% 12%; /* Dark gray #1e1e24 */
-    --muted-foreground: 240 5% 60%; /* Muted gray #9f9fad */
+    --muted: 240 5% 20%; 
+    --muted-foreground: 240 5% 65%;
 
     --accent: 259 80% 64%;
     --accent-foreground: 0 0% 100%;
@@ -110,19 +110,19 @@
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 240 6% 16%; /* Dark border #27272a */
-    --input: 240 6% 16%;
+    --border: 240 5% 24%;
+    --input: 240 5% 24%;
     --ring: 259 80% 64%;
 
     /* Luminous Precision Palette - Dark Overrides */
-    --surface: 240 10% 4%;
-    --surface-dim: 240 10% 2%;
-    --surface-bright: 240 10% 6%;
-    --surface-container-lowest: 240 10% 2%;
-    --surface-container-low: 240 10% 3%;
-    --surface-container: 240 10% 5%;
-    --surface-container-high: 240 10% 7%;
-    --surface-container-highest: 240 10% 9%;
+    --surface: 240 5% 13%;
+    --surface-dim: 240 5% 11%;
+    --surface-bright: 240 5% 15%;
+    --surface-container-lowest: 240 5% 9%;
+    --surface-container-low: 240 5% 11%;
+    --surface-container: 240 5% 13%;
+    --surface-container-high: 240 5% 15%;
+    --surface-container-highest: 240 5% 17%;
     --on-surface: 240 5% 90%;
     --on-surface-variant: 240 5% 75%;
     --outline: 240 5% 45%;

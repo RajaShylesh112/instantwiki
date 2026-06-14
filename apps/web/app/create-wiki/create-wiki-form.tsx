@@ -233,7 +233,7 @@ export default function CreateWikiForm({
                 onClick={() => setVisibility("PUBLIC")}
                 className={`p-3 border rounded-lg flex flex-col text-left gap-1.5 transition-all cursor-pointer ${
                   visibility === "PUBLIC"
-                    ? "border-[#6b38d4] bg-[#6b38d4]/10 text-slate-800 dark:text-zinc-105"
+                    ? "border-[#6b38d4] bg-[#6b38d4]/10 text-slate-800 dark:text-zinc-100"
                     : "border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/50 hover:bg-slate-100/30 dark:hover:bg-zinc-800 text-slate-500 dark:text-zinc-400"
                 }`}
                 disabled={isPending}
@@ -251,7 +251,7 @@ export default function CreateWikiForm({
                 onClick={() => setVisibility("UNLISTED")}
                 className={`p-3 border rounded-lg flex flex-col text-left gap-1.5 transition-all cursor-pointer ${
                   visibility === "UNLISTED"
-                    ? "border-[#6b38d4] bg-[#6b38d4]/10 text-slate-800 dark:text-zinc-105"
+                    ? "border-[#6b38d4] bg-[#6b38d4]/10 text-slate-800 dark:text-zinc-100"
                     : "border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/50 hover:bg-slate-100/30 dark:hover:bg-zinc-800 text-slate-500 dark:text-zinc-400"
                 }`}
                 disabled={isPending}
@@ -269,7 +269,7 @@ export default function CreateWikiForm({
                 onClick={() => setVisibility("PRIVATE")}
                 className={`p-3 border rounded-lg flex flex-col text-left gap-1.5 transition-all cursor-pointer ${
                   visibility === "PRIVATE"
-                    ? "border-[#6b38d4] bg-[#6b38d4]/10 text-slate-800 dark:text-zinc-105"
+                    ? "border-[#6b38d4] bg-[#6b38d4]/10 text-slate-800 dark:text-zinc-100"
                     : "border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/50 hover:bg-slate-100/30 dark:hover:bg-zinc-800 text-slate-500 dark:text-zinc-400"
                 }`}
                 disabled={isPending}

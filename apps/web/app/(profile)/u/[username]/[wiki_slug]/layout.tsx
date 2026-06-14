@@ -5,6 +5,7 @@ import { WikiRepository } from "@/lib/repositories/wiki"
 import Link from "next/link"
 import SidebarNav from "./sidebar-nav"
 import ThemeToggle from "@/components/layout/ThemeToggle"
+import { MobileSidebar } from "./mobile-sidebar"
 
 
 
@@ -115,7 +116,7 @@ export default async function WikiLayout({ children, params }: WikiLayoutProps) 
   return (
     <div className="flex min-h-screen bg-white dark:bg-zinc-950 text-slate-900 dark:text-zinc-150 font-sans">
       {/* Left Sidebar Navigation Component (nav-001) */}
-      <aside className="w-60 border-r border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/60 flex flex-col justify-between shrink-0 h-screen sticky top-0">
+      <aside className="hidden md:flex w-60 border-r border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/60 flex-col justify-between shrink-0 h-screen sticky top-0">
         <div className="p-5 flex flex-col h-full overflow-hidden">
           {/* Logo Branding */}
           <Link href="/" className="font-mono font-bold text-slate-900 dark:text-white hover:text-[#6b38d4] transition-colors text-base block shrink-0 mb-6">
@@ -148,9 +149,25 @@ export default async function WikiLayout({ children, params }: WikiLayoutProps) 
       {/* Main Content Pane */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden bg-[#FAFAF8] dark:bg-zinc-950">
         {/* Workspace Top Navbar */}
-        <header className="h-16 border-b border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex items-center justify-between px-8 shrink-0 shadow-2xs">
+        <header className="h-16 border-b border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex items-center justify-between px-4 sm:px-8 shrink-0 shadow-2xs">
           <div className="flex items-center gap-3">
-            <span className="text-[10px] font-extrabold font-mono text-[#006b5e] bg-[#006b5e]/10 border border-[#006b5e]/20 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+            <MobileSidebar>
+              <div className="p-5 flex flex-col h-full overflow-hidden">
+                <Link href="/" className="font-mono font-bold text-slate-900 dark:text-white hover:text-[#6b38d4] transition-colors text-base block shrink-0 mb-6">
+                  instant.wiki
+                </Link>
+                <div className="flex-1 overflow-y-auto pr-1 space-y-6">
+                  <SidebarNav username={username} wikiSlug={wiki_slug} isOwner={isOwner || isMocked} pages={wikiPages} />
+                </div>
+              </div>
+              <div className="p-4 border-t border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/40 flex flex-col gap-1 text-xs text-slate-500 font-mono">
+                <div className="truncate font-semibold text-slate-800 dark:text-zinc-200">@{username}</div>
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-[#6b38d4]"></span><span>Free Plan</span>
+                </div>
+              </div>
+            </MobileSidebar>
+            <span className="hidden sm:inline-block text-[10px] font-extrabold font-mono text-[#006b5e] bg-[#006b5e]/10 border border-[#006b5e]/20 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
               Workspace
             </span>
             <span className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white font-sans truncate max-w-[200px] sm:max-w-[400px]">
