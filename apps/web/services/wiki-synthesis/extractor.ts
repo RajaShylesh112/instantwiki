@@ -3,7 +3,10 @@ import path from "path"
 import os from "os"
 import { supabase } from "@/lib/supabase"
 import { Document } from "@/lib/repositories/document"
-import { PdfExtractorService } from "@/services/pdf-extractor"
+import {
+  PdfExtractorService,
+  MarkItDownServiceUnavailableError,
+} from "@/services/pdf-extractor"
 import { withTimeout } from "./utils"
 
 export interface ExtractedPage {
@@ -137,6 +140,13 @@ export async function extractDocumentText(
     }
     
   } catch (err: any) {
+    // If the MarkItDown microservice is unreachable, do NOT silently fall back
+    // to a simulated extraction — surface a clear "extraction not possible"
+    // error so the user knows what's wrong (and how to fix it).
+    if (err instanceof MarkItDownServiceUnavailableError) {
+      console.error(`[Synthesis Pipeline] [${doc.filename}] ${err.message}`)
+      throw err
+    }
     console.error(`[Synthesis Pipeline] [${doc.filename}] Failed to process document:`, err)
     try {
       fs.appendFileSync(path.join(process.cwd(), "extraction_error.log"), `[${new Date().toISOString()}] Fallback due to exception for ${doc.filename}: ${err?.message || err}\nStack: ${err?.stack}\n`);

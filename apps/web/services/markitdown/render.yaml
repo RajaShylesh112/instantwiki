@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: instantwiki-markitdown
+    runtime: docker
+    dockerfilePath: ./apps/web/services/markitdown/Dockerfile
+    dockerContext: ./apps/web/services/markitdown
+    region: oregon  # or your preferred region: oregon, frankfurt, singapore, etc.
+    plan: starter  # starter (free), standard, pro, or higher
+    
+    # Automatic scaling
+    numInstances: 1
+    
+    # Health check configuration
+    healthCheckPath: /health
+    
+    # Environment variables
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      
+      # PORT is automatically provided by Render
+      # Add these in Render dashboard as secrets if needed:
+      # - OPENAI_API_KEY (for LLM-based OCR)
+      # - OPENAI_BASE_URL (if using custom OpenAI endpoint)
+    
+    # Auto-deploy on push to main branch
+    autoDeploy: true
+    
+    # Build command (Docker handles this)
+    # No buildCommand needed for Docker services
+    
+    # Render provides the start command from Dockerfile CMD

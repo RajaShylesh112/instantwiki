@@ -3,6 +3,7 @@ import { Document } from "@/lib/repositories/document"
 import { WikiGeneratorRepository } from "@/lib/repositories/wiki-generator"
 import { EmbeddingService } from "@/services/ai/embeddings"
 import { incrementAiCredits } from "@/services/limits"
+import { MarkItDownServiceUnavailableError } from "@/services/pdf-extractor"
 
 import { extractDocumentText, simulateMockExtraction, ExtractedPage } from "./extractor"
 import { segmentSemanticChunks } from "./chunker"
@@ -201,6 +202,12 @@ export async function runIngestionPipeline(
         console.log(`[Synthesis Pipeline] [${doc.filename}] Extraction finished: ${docPages.length} page(s), ${totalChars} characters extracted.`)
         
       } catch (err) {
+        // If the MarkItDown microservice is unreachable, abort the pipeline
+        // entirely so the user sees a clear "extraction not possible" failure
+        // rather than a silently mocked wiki.
+        if (err instanceof MarkItDownServiceUnavailableError) {
+          throw err
+        }
         console.error(`[Synthesis Pipeline] [${doc.filename}] Failed to process document:`, err)
         simulateMockExtraction(doc, allPagesData, wikiTitle)
       }
