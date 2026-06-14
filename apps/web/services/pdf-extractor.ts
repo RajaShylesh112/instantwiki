@@ -42,10 +42,40 @@ export const PdfExtractorService = {
    */
   async extractPdf(pdfPath: string, pageLimit?: number): Promise<ExtractedPdfResult> {
     return new Promise((resolve, reject) => {
-      const scriptPath = path.join(process.cwd(), "lib", "python", "extractor.py")
+      let scriptPath = path.join(process.cwd(), "lib", "python", "extractor.py")
+      if (!fs.existsSync(scriptPath)) {
+        const fallbackPath = path.join(process.cwd(), "apps", "web", "lib", "python", "extractor.py")
+        if (fs.existsSync(fallbackPath)) {
+          scriptPath = fallbackPath
+        }
+      }
       
-      // Determine python binary name (standard 'python' or 'python3')
-      const pythonCmd = process.platform === "win32" ? "python" : "python3"
+      // Determine python binary path in our relocated markitdown virtual environment
+      let rootDir = process.cwd()
+      let venvDir = ""
+      
+      if (fs.existsSync(path.join(rootDir, "services", "markitdown", ".venv"))) {
+        venvDir = path.join(rootDir, "services", "markitdown", ".venv")
+      } else if (fs.existsSync(path.join(rootDir, "apps", "web", "services", "markitdown", ".venv"))) {
+        venvDir = path.join(rootDir, "apps", "web", "services", "markitdown", ".venv")
+      } else if (fs.existsSync(path.join(rootDir, "..", "..", "apps", "web", "services", "markitdown", ".venv"))) {
+        venvDir = path.resolve(rootDir, "..", "..", "apps", "web", "services", "markitdown", ".venv")
+      }
+      
+      let pythonCmd = process.platform === "win32" ? "python" : "python3"
+      if (venvDir && fs.existsSync(venvDir)) {
+        const scriptsPath = path.join(venvDir, "Scripts", "python.exe")
+        const binPath = path.join(venvDir, "bin", "python")
+        if (fs.existsSync(scriptsPath)) {
+          pythonCmd = scriptsPath
+        } else if (fs.existsSync(binPath)) {
+          pythonCmd = binPath
+        } else {
+          pythonCmd = process.platform === "win32"
+            ? scriptsPath
+            : binPath
+        }
+      }
       
       // Pass a dummy output_image_dir argument since the simplified extractor script expects 3 args
       const args = [scriptPath, pdfPath, "dummy-dir"]
@@ -61,8 +91,8 @@ export const PdfExtractorService = {
       const timeoutId = setTimeout(() => {
         console.error("Python PDF extractor process timed out. Terminating...")
         child.kill()
-        reject(new Error("PDF extraction timed out after 20 seconds."))
-      }, 20000)
+        reject(new Error("PDF extraction timed out after 60 seconds."))
+      }, 60000)
 
       child.stdout.on("data", (data) => {
         stdoutData += data.toString()

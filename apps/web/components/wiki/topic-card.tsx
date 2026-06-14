@@ -93,7 +93,7 @@ export default function TopicCard({
             </span>
           )}
           {isGenerating && (
-            <span className="text-[9px] font-mono font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/20 px-2 py-0.5 border border-blue-155 dark:border-blue-900/50 rounded-sm shrink-0 animate-pulse flex items-center gap-1">
+            <span className="text-[9px] font-mono font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/20 px-2 py-0.5 border border-blue-200 dark:border-blue-900/50 rounded-sm shrink-0 animate-pulse flex items-center gap-1">
               <Loader className="h-2 w-2 animate-spin" />
               Synthesizing...
             </span>
@@ -110,7 +110,7 @@ export default function TopicCard({
         </p>
 
         {isExpanded && (
-          <div className="mt-4 p-4 bg-slate-50 dark:bg-zinc-950 border border-slate-150 dark:border-zinc-800 rounded-md font-serif text-sm text-slate-700 dark:text-zinc-300 leading-relaxed space-y-3 overflow-hidden">
+          <div className="mt-4 p-4 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-md font-serif text-sm text-slate-700 dark:text-zinc-300 leading-relaxed space-y-3 overflow-hidden">
             {loading ? (
               <div className="flex flex-col items-center justify-center py-6 text-xs text-slate-400 dark:text-zinc-500 font-mono gap-2">
                 <Loader className="h-5 w-5 animate-spin text-purple-600" />

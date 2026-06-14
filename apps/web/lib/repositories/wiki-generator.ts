@@ -291,6 +291,13 @@ export const WikiGeneratorRepository = {
       .insert(embedding)
 
     if (error) throw error
+
+    const { error: updateErr } = await supabase
+      .from("document_chunks")
+      .update({ embedding: embedding.embedding })
+      .eq("id", embedding.chunk_id)
+
+    if (updateErr) throw updateErr
   },
 
   async insertChunksBulk(chunks: {
@@ -323,6 +330,18 @@ export const WikiGeneratorRepository = {
       .insert(embeddings)
 
     if (error) throw error
+
+    // Also update document_chunks.embedding column
+    const updatePromises = embeddings.map(emb =>
+      supabase
+        .from("document_chunks")
+        .update({ embedding: emb.embedding })
+        .eq("id", emb.chunk_id)
+    )
+    const results = await Promise.all(updatePromises)
+    for (const res of results) {
+      if (res.error) throw res.error
+    }
   },
 
   async insertPageSkeletonsBulk(pages: {

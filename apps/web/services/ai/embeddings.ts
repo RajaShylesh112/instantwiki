@@ -1,4 +1,5 @@
 import { createHash } from "crypto"
+import { CostTracker } from "@/services/wiki-synthesis/utils"
 
 /**
  * Helper to fetch with exponential backoff retry for handling rate limits (429)
@@ -103,6 +104,7 @@ export const EmbeddingService = {
           if (embedding && Array.isArray(embedding)) {
             // Pad 1024-dimension Voyage vector to 1536 dimensions to match database schema
             const padded = embedding.concat(new Array(1536 - embedding.length).fill(0))
+            await CostTracker.trackResponse("voyage-4-large", data, response.headers)
             return { embedding: padded, model: "voyage-4-large" }
           }
         } else {
@@ -132,6 +134,7 @@ export const EmbeddingService = {
           const data = await response.json()
           const embedding = data.data?.[0]?.embedding
           if (embedding && Array.isArray(embedding)) {
+            await CostTracker.trackResponse("github-text-embedding-3-small", data, response.headers)
             return { embedding, model: "github-text-embedding-3-small" }
           }
         } else {
@@ -161,6 +164,7 @@ export const EmbeddingService = {
           const data = await response.json()
           const embedding = data.data?.[0]?.embedding
           if (embedding && Array.isArray(embedding)) {
+            await CostTracker.trackResponse("text-embedding-3-small", data, response.headers)
             return { embedding, model: "text-embedding-3-small" }
           }
         }

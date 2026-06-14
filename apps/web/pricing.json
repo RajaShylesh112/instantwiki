@@ -1,0 +1,22 @@
+{
+  "openai.gpt-oss-120b": {
+    "input": 0.0000025,
+    "output": 0.00001
+  },
+  "gpt-4o-mini": {
+    "input": 0.00000015,
+    "output": 0.0000006
+  },
+  "voyage-4-large": {
+    "input": 0.00000012,
+    "output": 0.00000012
+  },
+  "github-text-embedding-3-small": {
+    "input": 0.00000002,
+    "output": 0.00000002
+  },
+  "text-embedding-3-small": {
+    "input": 0.00000002,
+    "output": 0.00000002
+  }
+}

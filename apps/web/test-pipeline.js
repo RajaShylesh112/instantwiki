@@ -194,7 +194,20 @@ function chunkText(text, size = 2500, overlap = 300) {
 function extractPdf(pdfPath) {
   return new Promise((resolve, reject) => {
     const scriptPath = path.join(__dirname, "lib", "python", "extractor.py");
-    const pythonCmd = process.platform === "win32" ? "python" : "python3";
+    
+    let venvDir = "";
+    if (fs.existsSync(path.join(__dirname, "services", "markitdown", ".venv"))) {
+      venvDir = path.join(__dirname, "services", "markitdown", ".venv");
+    } else if (fs.existsSync(path.join(__dirname, "apps", "web", "services", "markitdown", ".venv"))) {
+      venvDir = path.join(__dirname, "apps", "web", "services", "markitdown", ".venv");
+    }
+    
+    let pythonCmd = process.platform === "win32" ? "python" : "python3";
+    if (venvDir && fs.existsSync(venvDir)) {
+      pythonCmd = process.platform === "win32"
+        ? path.join(venvDir, "Scripts", "python.exe")
+        : path.join(venvDir, "bin", "python");
+    }
     
     // Pass dummy-dir as the simplified python script expects 3 args
     const args = [scriptPath, pdfPath, "dummy-dir"];

@@ -56,7 +56,7 @@ export default function SourcesView({
   const [conceptsList, setConceptsList] = useState<string[]>([])
   const [isSynthesizing, setIsSynthesizing] = useState(false)
   const [synthesisProgress, setSynthesisProgress] = useState(0)
-  const [currentStep, setCurrentStep] = useState<string>("EXTRACTION")
+  const [currentStep, setCurrentStep] = useState<string>("KNOWLEDGE_EXTRACTION")
   const [estTimeRemaining, setEstTimeRemaining] = useState<number>(45)
   const [synthesisStatusDetail, setSynthesisStatusDetail] = useState<string>("")
 
@@ -69,6 +69,24 @@ export default function SourcesView({
   const lastLogDetail = useRef<string | null>(null)
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
+  const mapDbStepToNewStep = (dbStep: string): string => {
+    switch (dbStep) {
+      case "EXTRACTION":
+        return "KNOWLEDGE_EXTRACTION"
+      case "CHUNKING":
+      case "EMBEDDINGS":
+        return "KNOWLEDGE_UNDERSTANDING"
+      case "TOPIC_DISCOVERY":
+        return "KNOWLEDGE_STRUCTURING"
+      case "SKELETON":
+        return "KNOWLEDGE_SYNTHESIS"
+      case "FINISHED":
+        return "FINISHED"
+      default:
+        return dbStep
+    }
+  }
+
   const addConsoleLog = (msg: string) => {
     const time = new Date().toLocaleTimeString(undefined, { hour12: false })
     setConsoleLogs(prev => [...prev, `[${time}] ${msg}`])
@@ -76,16 +94,14 @@ export default function SourcesView({
 
   const getStepNodes = (step: string): string[] => {
     switch (step) {
-      case "EXTRACTION":
-        return ["PDF Layout Parser", "Raw Text Stream", "Structure Extractor", "Metadata Ingestion", "Image Cropper"];
-      case "CHUNKING":
-        return ["Sliding Window", "Overlap Buffer", "Text Paragraphs", "Token Boundaries", "Chunk Map"];
-      case "EMBEDDINGS":
-        return ["1536-Dimensions", "Vector Space", "Cosine Similarity", "Embedding Model", "Index Pipeline"];
-      case "TOPIC_DISCOVERY":
-        return ["Concept Discovery", "Theme Extraction", "LDA Clustering", "Semantic Links", "Graph Nodes"];
-      case "SKELETON":
-        return ["Wiki Pages skeleton", "Aliases Mapping", "Internal Links", "Root Page Node", "Wiki Hierarchy"];
+      case "KNOWLEDGE_EXTRACTION":
+        return ["MarkItDown Parser", "Raw Markdown", "Structure Extractor", "Metadata Ingestion", "Visual Selector & OCR"];
+      case "KNOWLEDGE_UNDERSTANDING":
+        return ["Semantic Chunks", "Vector Embeddings", "pgvector Index", "Chunk Summaries", "Master Summary"];
+      case "KNOWLEDGE_STRUCTURING":
+        return ["Concept Discovery", "Theme Extraction", "Parent-Child Links", "Hierarchy Builder", "Page Skeletons"];
+      case "KNOWLEDGE_SYNTHESIS":
+        return ["Page Retrieval", "Hybrid Reranking", "LLM Writing", "Auto Linking", "Citations Mapping"];
       case "FINISHED":
         return ["Wiki Live!", "Index Ready", "Full text search", "Knowledge Graph", "Navigation Enabled"];
       default:
@@ -109,15 +125,13 @@ export default function SourcesView({
 
   useEffect(() => {
     if (!isSynthesizing) return
-    if (currentStep === "EXTRACTION") {
+    if (currentStep === "KNOWLEDGE_EXTRACTION") {
       setEstTimeRemaining(45)
-    } else if (currentStep === "CHUNKING") {
-      setEstTimeRemaining(prev => Math.min(prev, 40))
-    } else if (currentStep === "EMBEDDINGS") {
+    } else if (currentStep === "KNOWLEDGE_UNDERSTANDING") {
       setEstTimeRemaining(prev => Math.min(prev, 35))
-    } else if (currentStep === "TOPIC_DISCOVERY") {
+    } else if (currentStep === "KNOWLEDGE_STRUCTURING") {
       setEstTimeRemaining(prev => Math.min(prev, 22))
-    } else if (currentStep === "SKELETON") {
+    } else if (currentStep === "KNOWLEDGE_SYNTHESIS") {
       setEstTimeRemaining(prev => Math.min(prev, 15))
     } else if (currentStep === "FINISHED") {
       setEstTimeRemaining(0)
@@ -273,30 +287,28 @@ export default function SourcesView({
           }
 
           // Map step to progress bar percentage
+          const mappedStep = mapDbStepToNewStep(job.current_step)
           let progress = 10
-          if (job.current_step === "EXTRACTION") progress = 20
-          else if (job.current_step === "CHUNKING") progress = 40
-          else if (job.current_step === "EMBEDDINGS") progress = 60
-          else if (job.current_step === "TOPIC_DISCOVERY") progress = 80
-          else if (job.current_step === "SKELETON") progress = 95
-          else if (job.current_step === "FINISHED") progress = 100
+          if (mappedStep === "KNOWLEDGE_EXTRACTION") progress = 25
+          else if (mappedStep === "KNOWLEDGE_UNDERSTANDING") progress = 50
+          else if (mappedStep === "KNOWLEDGE_STRUCTURING") progress = 75
+          else if (mappedStep === "KNOWLEDGE_SYNTHESIS") progress = 95
+          else if (mappedStep === "FINISHED") progress = 100
 
           setSynthesisProgress(progress)
-          setCurrentStep(job.current_step)
+          setCurrentStep(mappedStep)
 
           // Step change logging
-          if (job.current_step !== lastStep.current) {
-            lastStep.current = job.current_step
-            if (job.current_step === "EXTRACTION") {
-              addConsoleLog("EXTRACTION: Downloading documents and running layout structure analysis...")
-            } else if (job.current_step === "CHUNKING") {
-              addConsoleLog("CHUNKING: Segmenting raw text into semantic document paragraphs...")
-            } else if (job.current_step === "EMBEDDINGS") {
-              addConsoleLog("EMBEDDINGS: Submitting batch chunks to vector model for indexing...")
-            } else if (job.current_step === "TOPIC_DISCOVERY") {
-              addConsoleLog("TOPIC_DISCOVERY: Mapping extracted contexts to resolve conceptual chapters...")
-            } else if (job.current_step === "SKELETON") {
-              addConsoleLog("SKELETON: Constructing internal wiki skeleton database structures...")
+          if (mappedStep !== lastStep.current) {
+            lastStep.current = mappedStep
+            if (mappedStep === "KNOWLEDGE_EXTRACTION") {
+              addConsoleLog("KNOWLEDGE EXTRACTION: Spawning MarkItDown parser and saving markdown sources...")
+            } else if (mappedStep === "KNOWLEDGE_UNDERSTANDING") {
+              addConsoleLog("KNOWLEDGE UNDERSTANDING: Generating semantic chunks, Voyage embeddings, and Master Summary...")
+            } else if (mappedStep === "KNOWLEDGE_STRUCTURING") {
+              addConsoleLog("KNOWLEDGE STRUCTURING: Building conceptual topics map and parent-child tree hierarchy...")
+            } else if (mappedStep === "KNOWLEDGE_SYNTHESIS") {
+              addConsoleLog("KNOWLEDGE SYNTHESIS: Executing hybrid retrieval, reranking top 15 chunks, and generating pages...")
             }
           }
 
@@ -307,34 +319,38 @@ export default function SourcesView({
             }
             
             // Build dynamic text status details
-            if (job.current_step === "EXTRACTION") {
-              setSynthesisStatusDetail(`Ingesting source documents... (new: ${metadata.new_docs_count || 0}, reused: ${metadata.reused_docs_count || 0})`)
+            if (mappedStep === "KNOWLEDGE_EXTRACTION") {
+              setSynthesisStatusDetail(`Parsing source files to Markdown... (new: ${metadata.new_docs_count || 0}, reused: ${metadata.reused_docs_count || 0})`)
               const logKey = `extraction-${metadata.new_docs_count}-${metadata.reused_docs_count}`
               if (lastLogDetail.current !== logKey) {
                 lastLogDetail.current = logKey
-                addConsoleLog(`EXTRACTION INFO: Queued ${metadata.new_docs_count} new docs, reused cache for ${metadata.reused_docs_count} docs.`)
+                addConsoleLog(`EXTRACTION INFO: Queued ${metadata.new_docs_count} files for markitdown conversion.`)
               }
-            } else if (job.current_step === "EMBEDDINGS") {
+            } else if (mappedStep === "KNOWLEDGE_UNDERSTANDING") {
               if (metadata.embedded_chunks !== undefined) {
-                setSynthesisStatusDetail(`Generating vector embeddings... (${metadata.embedded_chunks} of ${metadata.total_chunks} blocks indexed)`)
+                setSynthesisStatusDetail(`Generating Voyage embeddings... (${metadata.embedded_chunks} of ${metadata.total_chunks} chunks indexed)`)
                 const logKey = `embeddings-${metadata.embedded_chunks}`
                 if (lastLogDetail.current !== logKey) {
                   lastLogDetail.current = logKey
-                  addConsoleLog(`EMBEDDINGS INDEX: Created vector embeddings for chunk ${metadata.embedded_chunks} of ${metadata.total_chunks}.`)
+                  addConsoleLog(`EMBEDDINGS: Completed embedding chunk ${metadata.embedded_chunks} of ${metadata.total_chunks}.`)
                 }
               } else {
-                setSynthesisStatusDetail(`Generating vector embeddings for ${metadata.total_chunks || 0} chunks...`)
+                setSynthesisStatusDetail(`Generating Voyage embeddings for ${metadata.total_chunks || 0} chunks...`)
               }
-            } else if (job.current_step === "SKELETON") {
+            } else if (mappedStep === "KNOWLEDGE_SYNTHESIS") {
               if (metadata.current_page_index !== undefined) {
-                setSynthesisStatusDetail(`Synthesizing wiki page ${metadata.current_page_index} of ${metadata.total_pages}: "${metadata.current_page_title || ''}"`)
+                const pageTitle = metadata.current_page_title || (metadata.current_page_index === 0 ? "Preparing pages..." : "")
+                setSynthesisStatusDetail(`Synthesizing page ${metadata.current_page_index} of ${metadata.total_pages}${pageTitle ? `: "${pageTitle}"` : ""}`)
                 const logKey = `skeleton-${metadata.current_page_index}`
                 if (lastLogDetail.current !== logKey) {
                   lastLogDetail.current = logKey
-                  addConsoleLog(`SYNTHESIS: Writing page ${metadata.current_page_index}/${metadata.total_pages}: "${metadata.current_page_title || ''}"`)
+                  // Only log if we have a meaningful title (skip blank 0/N kickoff broadcast)
+                  if (metadata.current_page_index > 0 || metadata.current_page_title) {
+                    addConsoleLog(`SYNTHESIS: Generated concept page ${metadata.current_page_index}/${metadata.total_pages}: "${metadata.current_page_title || ''}"`)
+                  }
                 }
               } else {
-                setSynthesisStatusDetail("Synthesizing wiki pages skeleton...")
+                setSynthesisStatusDetail("Synthesizing wiki pages content...")
               }
             } else {
               setSynthesisStatusDetail("")
@@ -1071,11 +1087,10 @@ export default function SourcesView({
 
                 <div className="space-y-1 w-full">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-purple-400 font-mono">
-                    {currentStep === "EXTRACTION" && "INGESTION & PARSING"}
-                    {currentStep === "CHUNKING" && "TEXT SEGMENTATION"}
-                    {currentStep === "EMBEDDINGS" && "VECTOR COGNITIVE INDEX"}
-                    {currentStep === "TOPIC_DISCOVERY" && "CONCEPTUAL TOPIC MAPPING"}
-                    {currentStep === "SKELETON" && "ARTICLE STRUCTURE SYNTHESIS"}
+                    {currentStep === "KNOWLEDGE_EXTRACTION" && "KNOWLEDGE EXTRACTION"}
+                    {currentStep === "KNOWLEDGE_UNDERSTANDING" && "KNOWLEDGE UNDERSTANDING"}
+                    {currentStep === "KNOWLEDGE_STRUCTURING" && "KNOWLEDGE STRUCTURING"}
+                    {currentStep === "KNOWLEDGE_SYNTHESIS" && "KNOWLEDGE SYNTHESIS"}
                     {currentStep === "FINISHED" && "SYNTHESIS COMPLETED"}
                   </h4>
                   <p className="text-[11px] text-slate-350 truncate max-w-xs font-mono h-4">

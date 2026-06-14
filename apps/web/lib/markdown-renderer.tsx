@@ -110,9 +110,17 @@ export function renderInlineTokens(
   return tokens.map((token, idx) => {
     switch (token.type) {
       case "bold":
-        return <strong key={idx} className="font-bold text-slate-900 dark:text-zinc-100">{token.text}</strong>
+        return (
+          <strong key={idx} className="font-bold text-slate-900 dark:text-zinc-100">
+            {renderInlineTokens(tokenizeInline(token.text), options)}
+          </strong>
+        )
       case "italic":
-        return <em key={idx} className="italic text-slate-800 dark:text-zinc-200">{token.text}</em>
+        return (
+          <em key={idx} className="italic text-slate-800 dark:text-zinc-200">
+            {renderInlineTokens(tokenizeInline(token.text), options)}
+          </em>
+        )
       case "code":
         return (
           <code key={idx} className="bg-slate-100 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 px-1.2 py-0.5 rounded font-mono text-[11px] text-slate-800 dark:text-zinc-200">
@@ -127,7 +135,7 @@ export function renderInlineTokens(
             href={token.href || "#"}
             className="text-[#6b38d4] dark:text-purple-400 font-semibold hover:underline border-b border-dashed border-[#6b38d4]/30 dark:border-purple-400/30"
           >
-            {token.text}
+            {renderInlineTokens(tokenizeInline(token.text), options)}
           </Link>
         )
       case "citation":
@@ -243,11 +251,11 @@ export function renderMarkdownBody(
 
       const headingClasses = [
         "text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-8 mb-4 tracking-tight font-serif border-b border-slate-200 dark:border-zinc-800 pb-1.5", // h1
-        "text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mt-6 mb-3 tracking-tight font-serif border-b border-slate-100 dark:border-zinc-800/80 pb-1", // h2
+        "text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mt-12 pt-8 mb-4 tracking-tight font-serif border-t-2 border-slate-200 dark:border-zinc-800/60", // h2
         "text-lg sm:text-xl font-semibold text-slate-900 dark:text-white mt-5 mb-2.5 tracking-tight font-serif pb-0.5", // h3
         "text-base sm:text-lg font-semibold text-slate-800 dark:text-zinc-200 mt-4 mb-2 font-serif", // h4
         "text-sm sm:text-base font-semibold text-slate-700 dark:text-zinc-300 mt-4 mb-2 font-serif", // h5
-        "text-xs sm:text-sm font-semibold text-slate-650 dark:text-zinc-400 mt-4 mb-2 font-serif", // h6
+        "text-xs sm:text-sm font-semibold text-slate-600 dark:text-zinc-400 mt-4 mb-2 font-serif", // h6
       ]
       const HeadingTag = `h${Math.min(level, 6)}` as any
       const className = headingClasses[Math.min(level, 6) - 1]
@@ -281,13 +289,14 @@ export function renderMarkdownBody(
     }
 
     // 5. Unordered List Items
-    if (trimmed.startsWith("-") || trimmed.startsWith("*") || trimmed.startsWith("+")) {
+    const unorderedMatch = trimmed.match(/^([-*+])\s+(.*)/)
+    if (unorderedMatch) {
       if (inList && listType !== "ul") {
         flushList(index)
       }
       inList = true
       listType = "ul"
-      const itemText = trimmed.substring(1).trim()
+      const itemText = unorderedMatch[2].trim()
       const tokens = tokenizeInline(itemText)
       listItems.push(
         <li key={`li-${index}`} className="leading-relaxed font-serif my-1">

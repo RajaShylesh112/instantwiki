@@ -31,6 +31,7 @@ documents,created_at,timestamp with time zone,NO
 documents,updated_at,timestamp with time zone,NO
 documents,source_type,text,NO
 documents,mime_type,text,NO
+documents,file_size,integer,YES
 page_chunk_references,id,uuid,NO
 page_chunk_references,page_id,uuid,NO
 page_chunk_references,chunk_id,uuid,NO
@@ -47,6 +48,9 @@ processing_jobs,current_step,text,NO
 processing_jobs,started_at,timestamp with time zone,NO
 processing_jobs,finished_at,timestamp with time zone,YES
 processing_jobs,error,text,YES
+usage_stats,user_id,uuid,NO
+usage_stats,ai_credits_used,integer,YES
+usage_stats,updated_at,timestamp with time zone,YES
 users,id,uuid,NO
 users,email,character varying,NO
 users,username,character varying,NO
@@ -54,6 +58,8 @@ users,plan,character varying,NO
 users,created_at,timestamp without time zone,YES
 users,image,text,YES
 users,password_hash,text,YES
+users,stripe_customer_id,text,YES
+users,stripe_subscription_id,text,YES
 wiki_page_aliases,id,uuid,NO
 wiki_page_aliases,page_id,uuid,NO
 wiki_page_aliases,alias,text,NO

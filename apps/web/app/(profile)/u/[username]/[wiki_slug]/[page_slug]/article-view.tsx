@@ -58,6 +58,13 @@ interface HeadingItem {
   level: number
 }
 
+/** Strip markdown link syntax and inline HTML from a heading string */
+const cleanHeadingText = (raw: string): string =>
+  raw
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1") // [text](url) → text
+    .replace(/<[^>]+>/g, "")                  // strip any HTML tags
+    .trim()
+
 const parseHeadings = (markdown: string): HeadingItem[] => {
   const headings: HeadingItem[] = []
   if (!markdown) return headings
@@ -65,18 +72,59 @@ const parseHeadings = (markdown: string): HeadingItem[] => {
   
   lines.forEach((line) => {
     const trimmed = line.trim()
-    if (trimmed.startsWith("### ")) {
-      const text = trimmed.substring(4).trim()
+    if (trimmed.startsWith("## ")) {
+      const text = cleanHeadingText(trimmed.substring(3))
+      const id = text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
+      headings.push({ id, text, level: 2 })
+    } else if (trimmed.startsWith("### ")) {
+      const text = cleanHeadingText(trimmed.substring(4))
       const id = text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
       headings.push({ id, text, level: 3 })
     } else if (trimmed.startsWith("#### ")) {
-      const text = trimmed.substring(5).trim()
+      const text = cleanHeadingText(trimmed.substring(5))
       const id = text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
       headings.push({ id, text, level: 4 })
     }
   })
   
   return headings
+}
+
+/**
+ * Strips appended sections from old generated page bodies that are
+ * now rendered by dedicated UI components (graph preview, learning path, etc.).
+ * Also converts raw HTML <a> tags (from old autoLinkContent) into markdown links.
+ */
+const sanitizeBody = (body: string): string => {
+  let clean = body
+
+  // Convert raw HTML <a> tags into markdown links
+  // Matches: <a href="..." class="...">text</a>  →  [text](href)
+  clean = clean.replace(
+    /<a\s+href="([^"]*)"[^>]*>([^<]*)<\/a>/gi,
+    (_match, href, text) => `[${text}](${href})`
+  )
+
+  const markers = [
+    "### Statistics",
+    "### Knowledge Graph Preview",
+    "### Recommended Reading Path",
+    "### Suggested Reading Journey",
+    "### Main Topics",
+    "### Recent Pages",
+    "### References",
+    "### Subtopics",
+    "### Related Topics",
+    "### Relationships",
+  ]
+  for (const marker of markers) {
+    const idx = clean.indexOf(marker)
+    if (idx !== -1) {
+      clean = clean.substring(0, idx)
+    }
+  }
+  // Strip trailing whitespace
+  return clean.trimEnd()
 }
 
 export default function ArticleView({
@@ -154,7 +202,7 @@ export default function ArticleView({
   }
 
   // Parse headings and initialize scroll spy state
-  const headings = parseHeadings(page.body || "")
+  const headings = parseHeadings(sanitizeBody(page.body || ""))
   const [activeId, setActiveId] = useState<string>("")
 
   useEffect(() => {
@@ -175,6 +223,10 @@ export default function ArticleView({
         threshold: 0.1,
       }
     )
+
+    // Observe the page title (H1) as well
+    const titleEl = document.getElementById("article-title")
+    if (titleEl) observer.observe(titleEl)
 
     headings.forEach((h) => {
       const el = document.getElementById(h.id)
@@ -296,15 +348,40 @@ export default function ArticleView({
   // Find subtopics (pages listing this page as parent_page_id)
   const subtopics = allPages.filter(p => p.parent_page_id === page.id)
 
-  // Find related pages (same level hierarchical pages)
-  const relatedPages = allPages
-    .filter(p => p.id !== page.id && p.parent_page_id === page.parent_page_id && p.page_type !== "ROOT")
-    .slice(0, 3)
+  // Find related pages (using pageLinks, siblings, and children)
+  const getRelatedPages = () => {
+    const ids = new Set<string>()
+    
+    // 1. Direct cross-links
+    pageLinks.forEach(l => {
+      if (l.source_page_id === page.id && l.target_page_id !== page.id) ids.add(l.target_page_id)
+      if (l.target_page_id === page.id && l.source_page_id !== page.id) ids.add(l.source_page_id)
+    })
+    
+    // 2. Children
+    allPages.forEach(p => {
+      if (p.parent_page_id === page.id) ids.add(p.id)
+    })
+    
+    // 3. Sibling pages (same level)
+    if (page.parent_page_id) {
+      allPages.forEach(p => {
+        if (p.parent_page_id === page.parent_page_id && p.id !== page.id && p.page_type !== "ROOT") ids.add(p.id)
+      })
+    }
+    
+    return allPages.filter(p => ids.has(p.id))
+  }
+  
+  const relatedPages = getRelatedPages().slice(0, 5)
 
   // Resolve backlinks to full WikiPage objects
   const resolvedBacklinks = backlinks
     .map(bl => allPages.find(p => p.id === bl.source_page_id))
     .filter((p): p is WikiPage => !!p)
+
+  const rootPage = allPages.find(p => p.page_type === "ROOT")
+  const parentPage = page.parent_page_id ? allPages.find(p => p.id === page.parent_page_id) : null
 
   const selectedSourceDocChunks = chunkReferences.filter(
     ref => ref.document_id === selectedSourceDocId
@@ -346,7 +423,7 @@ export default function ArticleView({
             ) : genStep === 1 ? (
               <Loader2 className="h-4 w-4 text-[#6b38d4] dark:text-purple-400 animate-spin shrink-0" />
             ) : (
-              <span className="h-1.5 w-1.5 rounded-full bg-slate-300 dark:bg-zinc-650 ml-1.5 mr-1" />
+              <span className="h-1.5 w-1.5 rounded-full bg-slate-300 dark:bg-zinc-700 ml-1.5 mr-1" />
             )}
             <span className={genStep >= 2 ? "text-slate-800 dark:text-zinc-200 font-bold" : "text-slate-400 dark:text-zinc-500"}>2. Extracting Chunks Content</span>
           </div>
@@ -370,7 +447,7 @@ export default function ArticleView({
   if (generationStatus === "FAILED") {
     return (
       <div className="flex-1 py-16 flex flex-col items-center justify-center max-w-md mx-auto px-6 text-center space-y-4 font-sans text-slate-800 dark:text-zinc-200">
-        <div className="h-12 w-12 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/50 text-rose-655 dark:text-rose-400 rounded-full flex items-center justify-center p-2.5">
+        <div className="h-12 w-12 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/50 text-rose-700 dark:text-rose-400 rounded-full flex items-center justify-center p-2.5">
           <X className="h-6 w-6" />
         </div>
         <h2 className="text-md font-bold text-slate-900 dark:text-white">Synthesis Failed</h2>
@@ -396,13 +473,30 @@ export default function ArticleView({
         {/* Left Column: Sticky Table of Contents (TOC) */}
         {headings.length > 0 && (
           <nav className="hidden xl:block w-52 shrink-0 sticky top-24 self-start space-y-4 max-h-[calc(100vh-120px)] overflow-y-auto pr-2 border-r border-slate-100 dark:border-zinc-800 mr-2">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-550 font-mono flex items-center gap-1.5 select-none pb-2 border-b border-slate-100 dark:border-zinc-800">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 font-mono flex items-center gap-1.5 select-none pb-2 border-b border-slate-100 dark:border-zinc-800">
               <BookOpen className="h-3.5 w-3.5 text-[#6b38d4] dark:text-purple-400" />
               On This Page
             </div>
             <ul className="space-y-1.5 text-xs font-medium pt-1">
-              {headings.map((h) => (
-                <li key={h.id} style={{ paddingLeft: `${Math.max(0, (h.level - 3) * 8)}px` }}>
+              {/* Page title always first */}
+              <li>
+                <a
+                  href="#article-title"
+                  onClick={(e) => handleTocClick(e, "article-title")}
+                  className={`block py-1.5 hover:text-[#6b38d4] dark:hover:text-purple-300 transition-all leading-relaxed truncate ${
+                    activeId === "article-title" || activeId === ""
+                      ? "text-[#6b38d4] dark:text-purple-300 font-bold border-l-2 border-[#6b38d4] dark:border-purple-400 pl-2.5 -ml-3"
+                      : "text-slate-500 dark:text-zinc-400 hover:pl-1"
+                  }`}
+                  title={page.title}
+                >
+                  {page.title}
+                </a>
+              </li>
+              {headings
+                .filter((h) => h.text.trim().toLowerCase() !== page.title.trim().toLowerCase())
+                .map((h) => (
+                <li key={h.id} style={{ paddingLeft: `${Math.max(0, (h.level - 2) * 8 + 8)}px` }}>
                   <a
                     href={`#${h.id}`}
                     onClick={(e) => handleTocClick(e, h.id)}
@@ -423,17 +517,6 @@ export default function ArticleView({
 
         {/* Center Column: Main Content Area */}
         <div className="flex-1 min-w-0 max-w-3xl">
-          {/* Breadcrumbs */}
-          <div className="flex items-center gap-2 text-xs font-mono text-slate-500 dark:text-zinc-400 mb-6">
-            <Link href={`/u/${username}/${wikiSlug}`} className="hover:text-[#6b38d4] dark:hover:text-purple-355 transition-colors">
-              {wikiSlug}
-            </Link>
-            <span>/</span>
-            <span className="text-slate-800 dark:text-zinc-250">Pages</span>
-            <span>/</span>
-            <span className="text-slate-450 dark:text-zinc-400 truncate max-w-[150px]">{page.title}</span>
-          </div>
-
           {/* Article Container (article-container) */}
           <article className="space-y-6 max-w-3xl">
           
@@ -443,7 +526,7 @@ export default function ArticleView({
               <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight sm:text-4xl" id="article-title">
                 {page.title}
               </h1>
-              <p className="text-xs text-slate-455 dark:text-zinc-400 font-mono">
+              <p className="text-xs text-slate-550 dark:text-zinc-400 font-mono">
                 Verified Concept Article • Factual Traceability Enabled
               </p>
             </div>
@@ -466,7 +549,7 @@ export default function ArticleView({
           {page.summary && (
             <div className="border-l-4 border-[#6b38d4] bg-slate-50 dark:bg-zinc-900/60 p-4 rounded-r-lg italic" id="article-summary-card">
               <p className="text-sm font-medium text-slate-700 dark:text-zinc-300 font-sans">
-                <span className="font-bold font-mono text-slate-450 dark:text-zinc-450 uppercase text-[10px] block not-italic mb-1 tracking-wider">
+                <span className="font-bold font-mono text-slate-500 dark:text-zinc-400 uppercase text-[10px] block not-italic mb-1 tracking-wider">
                   Summary Overview
                 </span>
                 {page.summary}
@@ -474,9 +557,32 @@ export default function ArticleView({
             </div>
           )}
 
+          {/* Breadcrumb path below Summary */}
+          {page.page_type !== "ROOT" && (
+            <div className="flex items-center gap-1.5 text-xs font-mono text-slate-400 dark:text-zinc-500 mt-4 mb-4 select-none flex-wrap border-b border-slate-100 dark:border-zinc-800 pb-2">
+              {rootPage && rootPage.slug !== page.slug && (
+                <>
+                  <Link href={`/u/${username}/${wikiSlug}/${rootPage.slug}`} className="hover:text-purple-700 dark:hover:text-purple-400 transition-colors">
+                    {rootPage.title}
+                  </Link>
+                  <span className="mx-1 text-slate-300 dark:text-zinc-700">&gt;</span>
+                </>
+              )}
+              {parentPage && parentPage.slug !== rootPage?.slug && parentPage.slug !== page.slug && (
+                <>
+                  <Link href={`/u/${username}/${wikiSlug}/${parentPage.slug}`} className="hover:text-purple-700 dark:hover:text-purple-400 transition-colors">
+                    {parentPage.title}
+                  </Link>
+                  <span className="mx-1 text-slate-300 dark:text-zinc-700">&gt;</span>
+                </>
+              )}
+              <span className="text-slate-700 dark:text-zinc-300 font-bold truncate max-w-[200px]">{page.title}</span>
+            </div>
+          )}
+
           {/* Render Body */}
           <div className="space-y-4 font-serif" id="article-markdown-body">
-            {renderMarkdownBody(page.body || "", {
+            {renderMarkdownBody(sanitizeBody(page.body || ""), {
               citations,
               onCitationClick: handleCitationClick
             })}
@@ -485,7 +591,7 @@ export default function ArticleView({
           {/* Visual References (extracted images mapped to source pages) */}
           {images.length > 0 && (
             <div className="pt-6 border-t border-slate-200/60 dark:border-zinc-800 mt-8 space-y-4">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-450 dark:text-zinc-400 font-mono flex items-center gap-1.5">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400 font-mono flex items-center gap-1.5">
                 <ImageIcon className="h-4 w-4 text-[#6b38d4] dark:text-purple-400" />
                 Visual References from Cited Pages
               </h4>
@@ -513,42 +619,50 @@ export default function ArticleView({
 
           {/* Subtopics Tree */}
           {subtopics.length > 0 && (
-            <div className="pt-6 border-t border-slate-100 dark:border-zinc-800 mt-8 space-y-3">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-450 dark:text-zinc-400 font-mono">
+            <div className="pt-6 border-t border-slate-200/60 dark:border-zinc-800/60 mt-8 space-y-4">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 font-mono">
                 Subtopics & Sections
               </h4>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-3.5 sm:grid-cols-2">
                 {subtopics.map((sub) => (
                   <Link
                     key={sub.slug}
                     href={`/u/${username}/${wikiSlug}/${sub.slug}`}
-                    className="p-3 border border-slate-200 dark:border-zinc-800 rounded-md bg-white dark:bg-zinc-900 hover:border-[#6b38d4] dark:hover:border-purple-400 hover:shadow-2xs transition-all flex justify-between items-center group cursor-pointer"
+                    className="p-3.5 border border-slate-200 dark:border-zinc-800 rounded-lg bg-gradient-to-b from-white/80 to-slate-50/50 dark:from-zinc-900/80 dark:to-zinc-950/50 hover:border-[#6b38d4]/40 dark:hover:border-purple-500/40 hover:shadow-xs hover:-translate-y-0.5 transition-all duration-200 flex justify-between items-center group cursor-pointer"
                   >
-                    <div>
-                      <p className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-[#6b38d4] dark:group-hover:text-purple-400 transition-colors">{sub.title}</p>
-                      <p className="text-[10px] text-slate-400 dark:text-zinc-450 font-mono mt-0.5 truncate max-w-[200px]">{sub.summary}</p>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-[#6b38d4] dark:group-hover:text-purple-400 transition-colors">{sub.title}</span>
+                        <span className="text-[7.5px] font-mono font-bold tracking-wider uppercase px-1 py-0.5 rounded border bg-purple-50/40 dark:bg-purple-950/10 text-purple-600 dark:text-purple-400 border-purple-100 dark:border-purple-900 select-none">
+                          {sub.page_type}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-slate-500 dark:text-zinc-400 font-mono leading-normal line-clamp-1 max-w-[220px]" title={sub.summary || undefined}>
+                        {sub.summary || "Technical subtopic concepts."}
+                      </p>
                     </div>
-                    <ArrowRight className="h-4 w-4 text-slate-350 dark:text-zinc-500 group-hover:translate-x-0.5 transition-transform" />
+                    <ArrowRight className="h-4 w-4 text-slate-400 dark:text-zinc-500 group-hover:translate-x-0.5 group-hover:text-[#6b38d4] dark:group-hover:text-purple-400 transition-all" />
                   </Link>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Related Concepts */}
+          {/* Related Topics */}
           {relatedPages.length > 0 && (
-            <div className="pt-6 border-t border-slate-100 dark:border-zinc-800 mt-6 space-y-3">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-450 dark:text-zinc-400 font-mono">
-                Related Pages
-              </h4>
-              <div className="flex flex-wrap gap-2.5">
+            <div className="pt-8 border-t-2 border-slate-200 dark:border-zinc-800/65 mt-12 space-y-4">
+              <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight font-serif">
+                Related Topics
+              </h2>
+              <div className="flex flex-col gap-2 pl-4">
                 {relatedPages.map((related) => (
                   <Link
                     key={related.slug}
                     href={`/u/${username}/${wikiSlug}/${related.slug}`}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-650 dark:text-zinc-300 bg-slate-50 dark:bg-zinc-900/60 hover:bg-slate-100 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-800 px-3 py-1.5 rounded-md transition-colors cursor-pointer"
+                    className="inline-flex items-center text-sm font-semibold text-purple-600 dark:text-purple-400 hover:text-[#6b38d4] dark:hover:text-purple-300 hover:underline transition-all cursor-pointer"
                   >
-                    {related.title} <ArrowRight className="h-3 w-3 text-slate-400 dark:text-zinc-550" />
+                    <span className="text-purple-600 dark:text-purple-400 mr-2 font-mono">&rarr;</span>
+                    {related.title}
                   </Link>
                 ))}
               </div>
@@ -557,26 +671,26 @@ export default function ArticleView({
 
           {/* Incoming Backlinks Section */}
           {resolvedBacklinks.length > 0 && (
-            <div className="pt-6 border-t border-slate-200 dark:border-zinc-800 mt-8 space-y-3">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-455 dark:text-zinc-450 font-mono flex items-center gap-1.5">
+            <div className="pt-6 border-t border-slate-200/60 dark:border-zinc-800/60 mt-8 space-y-3.5">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400 font-mono flex items-center gap-1.5">
                 <Network className="h-4 w-4 text-[#6b38d4] dark:text-purple-400" />
                 Incoming Backlinks
               </h4>
-              <p className="text-[10px] text-slate-450 dark:text-zinc-500 font-mono leading-relaxed">
+              <p className="text-[10px] text-slate-400 dark:text-zinc-500 font-mono leading-relaxed">
                 Other pages in this wiki that link back to the current topic.
               </p>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-3.5 sm:grid-cols-2">
                 {resolvedBacklinks.map((blPage) => (
                   <Link
                     key={blPage.id}
                     href={`/u/${username}/${wikiSlug}/${blPage.slug}`}
-                    className="p-3 border border-slate-200 dark:border-zinc-800 rounded-md bg-white dark:bg-zinc-900 hover:border-[#6b38d4] dark:hover:border-purple-400 hover:shadow-2xs transition-all flex justify-between items-center group cursor-pointer"
+                    className="p-3.5 border border-slate-200 dark:border-zinc-800 rounded-lg bg-gradient-to-b from-white/80 to-slate-50/50 dark:from-zinc-900/80 dark:to-zinc-950/50 hover:border-[#6b38d4]/40 dark:hover:border-purple-500/40 hover:shadow-xs hover:-translate-y-0.5 transition-all duration-200 flex justify-between items-center group cursor-pointer"
                   >
-                    <div>
+                    <div className="space-y-1">
                       <p className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-[#6b38d4] dark:group-hover:text-purple-400 transition-colors">{blPage.title}</p>
-                      <p className="text-[10px] text-slate-450 dark:text-zinc-500 font-mono mt-0.5 truncate max-w-[220px]">{blPage.summary || "No summary available."}</p>
+                      <p className="text-[10px] text-slate-400 dark:text-zinc-500 font-mono mt-0.5 truncate max-w-[220px]">{blPage.summary || "No summary available."}</p>
                     </div>
-                    <ArrowRight className="h-4 w-4 text-slate-350 dark:text-zinc-500 group-hover:translate-x-0.5 transition-transform" />
+                    <ArrowRight className="h-4 w-4 text-slate-400 dark:text-zinc-500 group-hover:translate-x-0.5 group-hover:text-[#6b38d4] dark:group-hover:text-purple-400 transition-all" />
                   </Link>
                 ))}
               </div>
@@ -593,7 +707,7 @@ export default function ArticleView({
                   <Database className="h-4 w-4 text-[#6b38d4] dark:text-purple-400" />
                   Source Ingestion Document Coverage
                 </h5>
-                <p className="text-[10px] text-slate-450 dark:text-zinc-550 font-mono leading-relaxed">
+                <p className="text-[10px] text-slate-500 dark:text-zinc-500 font-mono leading-relaxed">
                   Calculated based on percentage distribution of evidence chunks cited in this article.
                 </p>
                 
@@ -631,7 +745,7 @@ export default function ArticleView({
                       <div className="space-y-1">
                         <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1 group-hover:text-[#6b38d4] dark:group-hover:text-purple-400 transition-colors">
                           {citation.sourceName} (Page {citation.page_number})
-                          <ExternalLink className="h-3 w-3 text-slate-455 dark:text-zinc-500 group-hover:text-[#6b38d4] dark:group-hover:text-purple-400" />
+                          <ExternalLink className="h-3 w-3 text-slate-500 dark:text-zinc-500 group-hover:text-[#6b38d4] dark:group-hover:text-purple-400" />
                         </div>
                         <p className="text-[11px] text-slate-500 dark:text-zinc-400 leading-relaxed font-mono line-clamp-1 italic">
                           "...{citation.highlight}..."
@@ -649,9 +763,8 @@ export default function ArticleView({
       {/* Right Column: Sidebar (Why This Page Exists) */}
       <aside className="w-full lg:w-80 shrink-0 space-y-6 lg:border-l lg:border-slate-200 dark:lg:border-zinc-800 lg:pl-6">
         
-        {/* Concept Network Graph */}
         <GraphPreview 
-          nodes={allPages.map(p => ({ id: p.id, title: p.title, slug: p.slug }))} 
+          pages={allPages} 
           links={pageLinks} 
           username={username}
           wikiSlug={wikiSlug}
@@ -714,14 +827,14 @@ export default function ArticleView({
               <tr className="border-b border-slate-100 dark:border-zinc-800/80">
                 <td className="py-2 text-slate-400 dark:text-zinc-500 font-bold font-mono text-[9px] uppercase tracking-wider">Confidence</td>
                 <td className="py-2 text-slate-900 dark:text-white text-right font-semibold font-mono">
-                  <span className="inline-flex items-center rounded border border-amber-250 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/20 px-1.5 py-0.5 text-[9px] font-bold text-amber-700 dark:text-amber-400">
+                  <span className="inline-flex items-center rounded border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/20 px-1.5 py-0.5 text-[9px] font-bold text-amber-700 dark:text-amber-400">
                     {Math.round(page.confidence_score * 100)}%
                   </span>
                 </td>
               </tr>
               <tr>
                 <td className="py-2 text-slate-400 dark:text-zinc-500 font-bold font-mono text-[9px] uppercase tracking-wider">Core Sources</td>
-                <td className="py-2 text-slate-805 dark:text-zinc-200 text-right font-semibold">
+                <td className="py-2 text-slate-800 dark:text-zinc-200 text-right font-semibold">
                   <div className="flex flex-col gap-0.5 items-end max-w-[180px] ml-auto">
                     {sourceCoverage.slice(0, 3).map((source) => (
                       <span key={source.docId} className="text-[10px] truncate w-full text-right" title={source.filename}>
@@ -729,7 +842,7 @@ export default function ArticleView({
                       </span>
                     ))}
                     {sourceCoverage.length > 3 && (
-                      <span className="text-[9px] text-slate-450 dark:text-zinc-500 italic">+{sourceCoverage.length - 3} more files</span>
+                      <span className="text-[9px] text-slate-400 dark:text-zinc-500 italic">+{sourceCoverage.length - 3} more files</span>
                     )}
                     {sourceCoverage.length === 0 && <span className="text-slate-500 dark:text-zinc-500 italic">None</span>}
                   </div>
@@ -750,7 +863,7 @@ export default function ArticleView({
           
           <div className="space-y-4 pt-1">
             {sourceCoverage.length === 0 ? (
-              <p className="text-xs text-slate-400 dark:text-zinc-550 font-mono">No cited documents found.</p>
+              <p className="text-xs text-slate-400 dark:text-zinc-500 font-mono">No cited documents found.</p>
             ) : (
               sourceCoverage.map((source) => (
                 <div key={source.docId} className="space-y-3">
@@ -798,7 +911,7 @@ export default function ArticleView({
               </div>
               <button
                 onClick={() => setIsDrawerOpen(false)}
-                className="p-1 rounded-full hover:bg-slate-200 dark:hover:bg-zinc-800 text-slate-450 dark:text-zinc-500 hover:text-slate-800 dark:hover:text-zinc-200 transition-colors cursor-pointer"
+                className="p-1 rounded-full hover:bg-slate-200 dark:hover:bg-zinc-800 text-slate-400 dark:text-zinc-500 hover:text-slate-800 dark:hover:text-zinc-200 transition-colors cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -818,7 +931,7 @@ export default function ArticleView({
               </div>
 
               <div className="rounded-lg border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-950 p-4 space-y-3">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-450 dark:text-zinc-500 font-mono block">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 font-mono block">
                   Original Context Snippet
                 </span>
                 
@@ -830,7 +943,7 @@ export default function ArticleView({
                       return (
                         <>
                           {parts[0]}
-                          <mark className="bg-yellow-250 dark:bg-yellow-950/40 dark:text-yellow-200 text-slate-900 dark:text-zinc-100 px-1 py-0.5 rounded font-semibold not-italic">
+                          <mark className="bg-yellow-200 dark:bg-yellow-950/40 dark:text-yellow-200 text-slate-900 dark:text-zinc-100 px-1 py-0.5 rounded font-semibold not-italic">
                             {highlight}
                           </mark>
                           {parts[1]}
@@ -842,7 +955,7 @@ export default function ArticleView({
                 </p>
               </div>
 
-              <div className="text-[11px] text-slate-450 dark:text-zinc-500 leading-relaxed flex items-start gap-1.5 font-mono">
+              <div className="text-[11px] text-slate-400 dark:text-zinc-500 leading-relaxed flex items-start gap-1.5 font-mono">
                 <HelpCircle className="h-4.5 w-4.5 text-slate-400 dark:text-zinc-500 shrink-0 mt-0.5" />
                 <span>
                   This verification coordinate is linked back directly to the source database chunk indexes.
@@ -943,7 +1056,7 @@ export default function ArticleView({
               </div>
             </div>
 
-            <div className="p-4 border-t border-slate-100 dark:border-zinc-800 bg-slate-55 dark:bg-zinc-950 flex justify-end">
+            <div className="p-4 border-t border-slate-100 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-950 flex justify-end">
               <button
                 onClick={() => setIsSourcePanelOpen(false)}
                 className="px-4 py-2 text-xs font-semibold bg-slate-900 dark:bg-zinc-800 hover:bg-slate-800 dark:hover:bg-zinc-700 text-white rounded-md transition-colors cursor-pointer"
