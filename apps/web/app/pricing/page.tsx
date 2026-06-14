@@ -3,13 +3,18 @@ import { Footer } from "@/components/ui/footer";
 import { Check, Zap, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import PricingButton from "./pricing-button";
+import { auth } from "auth";
 
 export const metadata = {
   title: "Pricing | instant.wiki",
   description: "Simple, transparent pricing for your documentation needs.",
 };
 
-export default function PricingPage() {
+export default async function PricingPage() {
+  const session = await auth();
+  const isLoggedIn = !!session?.user;
+
   return (
     <div className="min-h-screen flex flex-col bg-[#FAFAF8] dark:bg-zinc-950 text-slate-900 dark:text-zinc-150 font-sans">
       <Header />
@@ -68,7 +73,7 @@ export default function PricingPage() {
           </div>
 
           {/* PRO TIER */}
-          <div className="border border-slate-200 dark:border-zinc-800 rounded-3xl p-8 bg-white dark:bg-zinc-900 flex flex-col shadow-sm hover:shadow-xl hover:border-[#6b38d4]/50 dark:hover:border-purple-500/50 transition-all duration-300 relative overflow-hidden group">
+          <div className="border border-slate-200 dark:border-zinc-800 rounded-3xl p-8 bg-white dark:bg-zinc-900 flex flex-col shadow-sm hover:shadow-xl hover:border-[#6b38d4]/50 dark:hover:border-purple-500/50 transition-all duration-300 relative group">
             <div className="absolute top-0 right-8 -translate-y-1/2 z-20">
               <span className="bg-[#6b38d4] text-white text-[10px] font-bold uppercase tracking-widest py-1.5 px-3 rounded-full shadow-md">
                 Most Popular
@@ -76,9 +81,9 @@ export default function PricingPage() {
             </div>
             
             {/* Background glow effect */}
-            <div className="absolute inset-0 bg-gradient-to-br from-[#6b38d4]/5 to-transparent dark:from-purple-500/10 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="absolute inset-0 rounded-3xl overflow-hidden bg-gradient-to-br from-[#6b38d4]/5 to-transparent dark:from-purple-500/10 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             {/* Background pattern */}
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none opacity-50 dark:opacity-20" />
+            <div className="absolute inset-0 rounded-3xl overflow-hidden bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none opacity-50 dark:opacity-20" />
             
             <div className="relative z-10 mb-6 space-y-2">
               <h2 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
@@ -89,7 +94,7 @@ export default function PricingPage() {
             </div>
             
             <div className="relative z-10 mb-8 flex items-baseline gap-1">
-              <span className="text-5xl font-black text-slate-900 dark:text-white tracking-tight">$12</span>
+              <span className="text-5xl font-black text-slate-900 dark:text-white tracking-tight">$5</span>
               <span className="text-slate-500 dark:text-zinc-400 font-medium">/month</span>
             </div>
             
@@ -108,11 +113,9 @@ export default function PricingPage() {
               ))}
             </ul>
 
-            <Link href="/billing" className="block w-full mt-auto relative z-10">
-              <Button className="w-full h-12 bg-[#6b38d4] hover:bg-[#5a2eab] text-white font-bold rounded-xl text-sm transition-all shadow-md group-hover:shadow-lg group-hover:shadow-[#6b38d4]/20">
-                Upgrade to Pro
-              </Button>
-            </Link>
+            <div className="w-full mt-auto relative z-10">
+              <PricingButton plan="FREE" isLoggedIn={isLoggedIn} />
+            </div>
           </div>
         </div>
       </main>
