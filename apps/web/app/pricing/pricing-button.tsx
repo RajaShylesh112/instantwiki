@@ -1,22 +1,58 @@
 "use client"
 
-import { useState } from "react"
-import { Sparkles } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Sparkles, Loader2 } from "lucide-react"
+import { initializePaddle, Paddle } from "@paddle/paddle-js"
 
 interface PricingButtonProps {
   plan: "FREE" | "PRO"
-  isLoggedIn: boolean
+  isLoggedIn?: boolean
+  userId?: string
 }
 
-export default function PricingButton({ plan, isLoggedIn }: PricingButtonProps) {
+export default function PricingButton({ plan, isLoggedIn = false, userId }: PricingButtonProps) {
+  const [paddle, setPaddle] = useState<Paddle | undefined>()
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const initPaddle = async () => {
+      try {
+        const paddleInstance = await initializePaddle({
+          environment: 'production',
+          token: process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN || 'test_token',
+        })
+        if (paddleInstance) {
+          setPaddle(paddleInstance)
+        }
+      } catch (err) {
+        console.error("Failed to initialize Paddle", err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    initPaddle()
+  }, [])
+
   const handleUpgrade = () => {
     if (!isLoggedIn) {
       window.location.href = "/signin?callbackUrl=/pricing"
       return
     }
 
-    // Direct user to email support for upgrades since Stripe is removed
-    window.location.href = "mailto:support@instant.wiki?subject=Pro%20Upgrade%20Request&body=Hi%2C%20I%20would%20like%20to%20upgrade%20my%20account%20to%20the%20Pro%20plan."
+    if (paddle) {
+      const priceId = process.env.NEXT_PUBLIC_PADDLE_PRO_PRICE_ID || 'pri_01hxyz1234567890abcdef'
+      paddle.Checkout.open({
+        items: [
+          {
+            priceId: priceId,
+            quantity: 1
+          }
+        ],
+        customData: {
+          userId: userId || ""
+        }
+      })
+    }
   }
 
   if (plan === "PRO") {
@@ -33,9 +69,15 @@ export default function PricingButton({ plan, isLoggedIn }: PricingButtonProps) 
   return (
     <button
       onClick={handleUpgrade}
-      className="w-full py-3 bg-[#6b38d4] hover:bg-[#8455ef] text-white rounded-lg text-sm font-bold tracking-wide transition-all active:scale-98 cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
+      disabled={loading}
+      className="w-full h-12 bg-[#6b38d4] hover:bg-[#5a2eab] text-white font-bold rounded-xl text-sm transition-all shadow-md group-hover:shadow-lg group-hover:shadow-[#6b38d4]/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
     >
-      <Sparkles className="h-4 w-4" /> Contact to Upgrade
+      {loading ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+        <Sparkles className="h-4 w-4" />
+      )}
+      Upgrade to Pro
     </button>
   )
 }

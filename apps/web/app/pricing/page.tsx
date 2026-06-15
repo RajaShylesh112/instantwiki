@@ -114,7 +114,7 @@ export default async function PricingPage() {
             </ul>
 
             <div className="w-full mt-auto relative z-10">
-              <PricingButton plan="FREE" isLoggedIn={isLoggedIn} />
+              <PricingButton plan="FREE" isLoggedIn={isLoggedIn} userId={session?.user?.id} />
             </div>
           </div>
         </div>
