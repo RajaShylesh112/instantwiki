@@ -41,17 +41,20 @@ export default function PricingButton({ plan, isLoggedIn = false, userId }: Pric
 
     if (paddle) {
       const priceId = process.env.NEXT_PUBLIC_PADDLE_PRO_PRICE_ID || 'pri_01hxyz1234567890abcdef'
-      paddle.Checkout.open({
+      const checkoutData: any = {
         items: [
           {
             priceId: priceId,
             quantity: 1
           }
-        ],
-        customData: {
-          userId: userId || ""
-        }
-      })
+        ]
+      }
+
+      if (userId) {
+        checkoutData.customData = { userId }
+      }
+
+      paddle.Checkout.open(checkoutData)
     }
   }
 
