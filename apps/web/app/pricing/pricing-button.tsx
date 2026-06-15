@@ -18,7 +18,7 @@ export default function PricingButton({ plan, isLoggedIn = false, userId }: Pric
     const initPaddle = async () => {
       try {
         const paddleInstance = await initializePaddle({
-          environment: 'production',
+          environment: (process.env.NEXT_PUBLIC_PADDLE_ENVIRONMENT as 'sandbox' | 'production') || 'production',
           token: process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN || 'test_token',
         })
         if (paddleInstance) {
